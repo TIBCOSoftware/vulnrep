@@ -1,0 +1,278 @@
+{
+    "document": {
+        "title": "All CVRF features for testing - note carefully constructed to match Go XML serialization",
+        "type": "FooType",
+        "publisher": {
+            "type": "vendor",
+            "vendor_id": "vendorID",
+            "contact_details": "Call me!",
+            "issuing_authority": "Whomever you choose"
+        },
+        "tracking": {
+            "id": "2019-Foobar",
+            "aliases": [
+                "Alias1",
+                "Alias2",
+                "Alias3"
+            ],
+            "status": "final",
+            "version": "1.2",
+            "revisions": [
+                {
+                    "number": "2",
+                    "date": "2019-07-25T09:15:10-07:00",
+                    "description": "First revision"
+                },
+                {
+                    "number": "3",
+                    "date": "2019-07-26T09:15:20-07:00",
+                    "description": "Second revision"
+                }
+            ],
+            "initial_release_date": "2019-07-25T09:15:10-07:00",
+            "current_release_date": "2019-07-26T09:15:20-07:00",
+            "generator": {
+                "engine": "Manual",
+                "date": "2019-07-26T09:14:04-07:00"
+            }
+        },
+        "notes": [
+            {
+                "title": "Note title 1",
+                "audience": "Note audience 1",
+                "type": "description",
+                "ordinal": 1,
+                "text": "This is the first document note"
+            },
+            {
+                "title": "Note title 2",
+                "audience": "Note 2nd audience",
+                "type": "general",
+                "ordinal": 2,
+                "text": "Another note!"
+            }
+        ],
+        "distribution": "Spread wide and far",
+        "aggregate_severity": {
+            "namespace": "https://www.example.com/Severities",
+            "text": "SuperBad"
+        },
+        "references": [
+            {
+                "type": "self",
+                "url": "https://www.example.com/Reference1",
+                "description": "Document Reference 1 description"
+            },
+            {
+                "type": "self",
+                "url": "https://www.example.com/Reference2",
+                "description": "Document Reference 2 description"
+            }
+        ],
+        "acknowledgments": [
+            {
+                "names": [
+                    "AckName1",
+                    "AckName2"
+                ],
+                "organizations": [
+                    "AckOrg1",
+                    "AckOrg2"
+                ],
+                "description": "Thanks to these awesome people!",
+                "urls": [
+                    "https://www.example.com/Ack1",
+                    "https://www.example.com/Ack2"
+                ]
+            }
+        ]
+    },
+    "product_tree": {
+        "branches": [
+            {
+                "type": "vendor",
+                "name": "example.com",
+                "branches": [
+                    {
+                        "type": "product_family",
+                        "name": "Games",
+                        "product": {
+                            "product_id": "ProductB1",
+                            "cpe": "cpe:/A:branchb:games",
+                            "name": "Branch B Games"
+                        }
+                    },
+                    {
+                        "type": "product_family",
+                        "name": "Utilities",
+                        "product": {
+                            "product_id": "ProductB2",
+                            "cpe": "cpe:/A:branchb:games",
+                            "name": "Branch B Utilities"
+                        }
+                    }
+                ]
+            },
+            {
+                "type": "vendor",
+                "name": "example2.com",
+                "product": {
+                    "product_id": "ProductC1",
+                    "cpe": "cpe:/A:branchc:one",
+                    "name": "Branch C One"
+                }
+            }
+        ],
+        "full_product_names": [
+            {
+                "product_id": "ProductA1",
+                "cpe": "cpe:/A:foo:bar",
+                "name": "Product A-1"
+            },
+            {
+                "product_id": "ProductA2",
+                "cpe": "cpe:/a:blah:ooo:xxx",
+                "name": "Product A-2"
+            }
+        ],
+        "relationships": [
+            {
+                "product_reference": "ProductA2",
+                "relationship_type": "installed_on",
+                "relates_to_product_reference": "ProductA1",
+                "full_product_names": [
+                    {
+                        "product_id": "ProductA1+A2",
+                        "cpe": "cpe:/a:foo:bar:blah:oo:xx",
+                        "name": "Product A-1+A-2"
+                    }
+                ]
+            }
+        ],
+        "product_groups": [
+            {
+                "group_id": "Group1",
+                "description": "Example.com Products",
+                "product_ids": [
+                    "ProductB1",
+                    "ProductB2"
+                ]
+            }
+        ]
+    },
+    "vulnerabilities": [
+        {
+            "ordinal": 1,
+            "title": "Foobarred",
+            "id": {
+                "system_name": "example_com",
+                "text": "Vuln1"
+            },
+            "notes": [
+                {
+                    "title": "Vulnerability One",
+                    "audience": "Vuln audience",
+                    "type": "general",
+                    "ordinal": 1,
+                    "text": "Hoping to have fun with the note."
+                }
+            ],
+            "discovery_date": "2019-07-26T09:15:20-07:00",
+            "release_date": "2019-07-27T09:15:20-07:00",
+            "involvements": [
+                {
+                    "party": "discoverer",
+                    "status": "open",
+                    "description": "Helped us find the issue."
+                }
+            ],
+            "cve": "CVE-2019-11208",
+            "cwe": {
+                "id": "CWE-462",
+                "description": "Defect CWE-462"
+            },
+            "product_status": {
+                "known_affected": [
+                    "ProductA1",
+                    "ProductB1"
+                ]
+            },
+            "threats": [
+                {
+                    "type": "impact",
+                    "description": "Everyone is hosed",
+                    "date": "2019-07-27T09:15:20-07:00",
+                    "products": [
+                        "ProductA1",
+                        "ProductB1"
+                    ],
+                    "groups": [
+                        "Group1"
+                    ]
+                }
+            ],
+            "cvss_score_sets": {
+                "v2": [
+                    {
+                        "base_score": "6.6",
+                        "temporal_score": "6.7",
+                        "environmental_score": "6.2",
+                        "vector": "AV:N/AC:L/Au:N/C:C/I:C/A:C/E:F/RL:OF/RC:C/CDP:N/TD:N/CR:ND/IR:ND/AR:ND",
+                        "product_ids": [
+                            "ProductA1"
+                        ]
+                    }
+                ],
+                "v3": [
+                    {
+                        "base_score": "6.6",
+                        "temporal_score": "6.7",
+                        "environmental_score": "6.2",
+                        "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                        "product_ids": [
+                            "ProductB1"
+                        ]
+                    }
+                ]
+            },
+            "remediations": [
+                {
+                    "type": "vendor_fix",
+                    "date": "2019-07-26T09:15:20-07:00",
+                    "description": "You thought we would fix it?!",
+                    "entitlement": [
+                        "Yup, you are entitled."
+                    ],
+                    "url": "https://www.example.com/security/patches",
+                    "products": [
+                        "ProductA1"
+                    ],
+                    "groups": [
+                        "Group1"
+                    ]
+                }
+            ],
+            "references": [
+                {
+                    "type": "self",
+                    "url": "https://www.example.com/security/advisories",
+                    "description": "May it delivery you peace."
+                }
+            ],
+            "acknowledgments": [
+                {
+                    "names": [
+                        "Me, myself, and I"
+                    ],
+                    "organizations": [
+                        "Example.com"
+                    ],
+                    "description": "Lost without them.",
+                    "urls": [
+                        "https://www.example.com/security/ack1"
+                    ]
+                }
+            ]
+        }
+    ]
+}

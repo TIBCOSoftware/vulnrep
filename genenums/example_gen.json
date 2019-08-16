@@ -1,0 +1,20 @@
+{
+	"PackageName": "mypkg",
+	"Enums": [
+		{
+			"TypeName": "EnumType",
+			"Values": [
+				{
+					"GoName": "BlahValue",
+					"XML": "xml-blah-value",
+					"JSON": "json-blah-value"
+				},
+				{
+					"GoName": "GoodValue",
+					"XML": "xml-good-value",
+					"JSON": "json-good-value"
+				}
+			]
+		}
+	]
+}

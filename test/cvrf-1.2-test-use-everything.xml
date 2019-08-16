@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cvrfdoc xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/cvrf">
+    <DocumentTitle>All CVRF features for testing - note carefully constructed to match Go XML serialization</DocumentTitle>
+    <DocumentType>FooType</DocumentType>
+    <DocumentPublisher Type="Vendor" VendorID="vendorID">
+        <ContactDetails>Call me!</ContactDetails>
+        <IssuingAuthority>Whomever you choose</IssuingAuthority>
+    </DocumentPublisher>
+    <DocumentTracking>
+        <Identification>
+            <ID>2019-Foobar</ID>
+            <Alias>Alias1</Alias>
+            <Alias>Alias2</Alias>
+            <Alias>Alias3</Alias>
+        </Identification>
+        <Status>Final</Status>
+        <Version>1.2</Version>
+        <RevisionHistory>
+            <Revision>
+                <Number>2</Number>
+                <Date>2019-07-25T09:15:10-07:00</Date>
+                <Description>First revision</Description>
+            </Revision>
+            <Revision>
+                <Number>3</Number>
+                <Date>2019-07-26T09:15:20-07:00</Date>
+                <Description>Second revision</Description>
+            </Revision>
+        </RevisionHistory>
+        <InitialReleaseDate>2019-07-25T09:15:10-07:00</InitialReleaseDate>
+        <CurrentReleaseDate>2019-07-26T09:15:20-07:00</CurrentReleaseDate>
+        <Generator>
+            <Engine>Manual</Engine>
+            <Date>2019-07-26T09:14:04-07:00</Date>
+        </Generator>
+    </DocumentTracking>
+    <DocumentNotes>
+        <Note Title="Note title 1" Audience="Note audience 1" Type="Description" Ordinal="1">This is the first document note</Note>
+        <Note Title="Note title 2" Audience="Note 2nd audience" Type="General" Ordinal="2">Another note!</Note>
+    </DocumentNotes>
+    <DocumentDistribution>Spread wide and far</DocumentDistribution>
+    <AggregateSeverity Namespace="https://www.example.com/Severities">SuperBad</AggregateSeverity>
+    <DocumentReferences>
+        <Reference Type="Self">
+            <URL>https://www.example.com/Reference1</URL>
+            <Description>Document Reference 1 description</Description>
+        </Reference>
+        <Reference Type="Self">
+            <URL>https://www.example.com/Reference2</URL>
+            <Description>Document Reference 2 description</Description>
+        </Reference>
+    </DocumentReferences>
+    <Acknowledgments>
+        <Acknowledgment>
+            <Name>AckName1</Name>
+            <Name>AckName2</Name>
+            <Organization>AckOrg1</Organization>
+            <Organization>AckOrg2</Organization>
+            <Description>Thanks to these awesome people!</Description>
+            <URL>https://www.example.com/Ack1</URL>
+            <URL>https://www.example.com/Ack2</URL>
+        </Acknowledgment>
+    </Acknowledgments>
+    <ProductTree xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/prod">
+        <Branch Type="Vendor" Name="example.com">
+            <Branch Type="Product Family" Name="Games">
+                <FullProductName ProductID="ProductB1" CPE="cpe:/A:branchb:games">Branch B Games</FullProductName>
+            </Branch>
+            <Branch Type="Product Family" Name="Utilities">
+                <FullProductName ProductID="ProductB2" CPE="cpe:/A:branchb:games">Branch B Utilities</FullProductName>
+            </Branch>
+        </Branch>
+        <Branch Type="Vendor" Name="example2.com">
+            <FullProductName ProductID="ProductC1" CPE="cpe:/A:branchc:one">Branch C One</FullProductName>
+        </Branch>
+        <FullProductName ProductID="ProductA1" CPE="cpe:/A:foo:bar">Product A-1</FullProductName>
+        <FullProductName ProductID="ProductA2" CPE="cpe:/a:blah:ooo:xxx">Product A-2</FullProductName>
+        <Relationship ProductReference="ProductA2" RelationType="Installed On" RelatesToProductReference="ProductA1">
+            <FullProductName ProductID="ProductA1+A2" CPE="cpe:/a:foo:bar:blah:oo:xx">Product A-1+A-2</FullProductName>
+        </Relationship>
+        <ProductGroups>
+            <Group GroupID="Group1">
+                <Description>Example.com Products</Description>
+                <ProductID>ProductB1</ProductID>
+                <ProductID>ProductB2</ProductID>
+            </Group>
+        </ProductGroups>
+    </ProductTree>
+    <Vulnerability xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/vuln" Ordinal="1">
+        <Title>Foobarred</Title>
+        <ID SystemName="example_com">Vuln1</ID>
+        <Notes>
+            <Note Title="Vulnerability One" Audience="Vuln audience" Type="General" Ordinal="1">Hoping to have fun with the note.</Note>
+        </Notes>
+        <DiscoveryDate>2019-07-26T09:15:20-07:00</DiscoveryDate>
+        <ReleaseDate>2019-07-27T09:15:20-07:00</ReleaseDate>
+        <Involvements>
+            <Involvement Party="Discoverer" Status="Open">
+                <Description>Helped us find the issue.</Description>
+            </Involvement>
+        </Involvements>
+        <CVE>CVE-2019-11208</CVE>
+        <CWE ID="CWE-462">Defect CWE-462</CWE>
+        <ProductStatuses>
+            <Status Type="Known Affected">
+                <ProductID>ProductA1</ProductID>
+                <ProductID>ProductB1</ProductID>
+            </Status>
+        </ProductStatuses>
+        <Threats>
+            <Threat Type="Impact" Date="2019-07-27T09:15:20-07:00">
+                <Description>Everyone is hosed</Description>
+                <ProductID>ProductA1</ProductID>
+                <ProductID>ProductB1</ProductID>
+                <GroupID>Group1</GroupID>
+            </Threat>
+        </Threats>
+        <CVSSScoreSets>
+            <ScoreSetV2>
+                <BaseScoreV2>6.6</BaseScoreV2>
+                <TemporalScoreV2>6.7</TemporalScoreV2>
+                <EnvironmentalScoreV2>6.2</EnvironmentalScoreV2>
+                <VectorV2>AV:N/AC:L/Au:N/C:C/I:C/A:C/E:F/RL:OF/RC:C/CDP:N/TD:N/CR:ND/IR:ND/AR:ND</VectorV2>
+                <ProductID>ProductA1</ProductID>
+            </ScoreSetV2>
+            <ScoreSetV3>
+                <BaseScoreV3>6.6</BaseScoreV3>
+                <TemporalScoreV3>6.7</TemporalScoreV3>
+                <EnvironmentalScoreV3>6.2</EnvironmentalScoreV3>
+                <VectorV3>CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N</VectorV3>
+                <ProductID>ProductB1</ProductID>
+            </ScoreSetV3>
+        </CVSSScoreSets>
+        <Remediations>
+            <Remediation Type="Vendor Fix" Date="2019-07-26T09:15:20-07:00">
+                <Description>You thought we would fix it?!</Description>
+                <Entitlement>Yup, you are entitled.</Entitlement>
+                <URL>https://www.example.com/security/patches</URL>
+                <ProductID>ProductA1</ProductID>
+                <GroupID>Group1</GroupID>
+            </Remediation>
+        </Remediations>
+        <References>
+            <Reference Type="Self">
+                <URL>https://www.example.com/security/advisories</URL>
+                <Description>May it delivery you peace.</Description>
+            </Reference>
+        </References>
+        <Acknowledgments>
+            <Acknowledgment>
+                <Name>Me, myself, and I</Name>
+                <Organization>Example.com</Organization>
+                <Description>Lost without them.</Description>
+                <URL>https://www.example.com/security/ack1</URL>
+            </Acknowledgment>
+        </Acknowledgments>
+    </Vulnerability>
+</cvrfdoc>

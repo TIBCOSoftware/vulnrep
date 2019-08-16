@@ -1,0 +1,335 @@
+{
+	"PackageName": "vulnrep",
+	"Enums": [
+		{
+			"TypeName": "RelationshipType",
+			"Values": [
+				{
+					"GoName": "RelationshipDefaultComponentOf",
+					"XML": "Default Component Of",
+					"JSON": "default_component_of"
+				},
+				{
+					"GoName": "RelationshipOptionalComponentOf",
+					"XML": "Optional Component Of",
+					"JSON": "optional_component_of"
+				},
+				{
+					"GoName": "RelationshipExternalComponentOf",
+					"XML": "External Component Of",
+					"JSON": "external_component_of"
+				},
+				{
+					"GoName": "RelationshipInstalledOn",
+					"XML": "Installed On",
+					"JSON": "installed_on"
+				},
+				{
+					"GoName": "RelationshipInstalledWith",
+					"XML": "Installed With",
+					"JSON": "installed_with"
+				}
+			]
+        },
+        {
+            "TypeName": "InvolvementStatusType",
+            "Values": [
+				{
+					"GoName": "InvolvementStatusOpen",
+					"XML": "Open",
+					"JSON": "open"
+				},
+				{
+					"GoName": "InvolvementStatusDisputed",
+					"XML": "Disputed",
+					"JSON": "disputed"
+				},
+				{
+					"GoName": "InvolvementStatusInProgress",
+					"XML": "In Progress",
+					"JSON": "in_progress"
+				},
+				{
+					"GoName": "InvolvementStatusCompleted",
+					"XML": "Completed",
+					"JSON": "completed"
+				},
+				{
+					"GoName": "InvolvementStatusContactAttempted",
+					"XML": "Contact Attempted",
+					"JSON": "contact_attempted"
+				},
+				{
+					"GoName": "InvolvementStatusNotContacted",
+					"XML": "Not Contacted",
+					"JSON": "not_contacted"
+				}
+            ]
+        },
+        {
+            "TypeName": "AffectedStatusType",
+            "Values": [
+				{
+					"GoName": "AffectedStatusFirstAffected",
+					"XML": "First Affected",
+					"JSON": "first_affected"
+				},
+				{
+					"GoName": "AffectedStatusFirstFixed",
+					"XML": "First Fixed",
+					"JSON": "first_fixed"
+				},
+				{
+					"GoName": "AffectedStatusFixed",
+					"XML": "Fixed",
+					"JSON": "fixed"
+				},
+				{
+					"GoName": "AffectedStatusKnownAffected",
+					"XML": "Known Affected",
+					"JSON": "known_affected"
+				},
+				{
+					"GoName": "AffectedStatusKnownNotAffected",
+					"XML": "Known Not Affected",
+					"JSON": "known_not_affected"
+				},
+				{
+					"GoName": "AffectedStatusLastAffected",
+					"XML": "Last Affected",
+					"JSON": "last_affected"
+				},
+				{
+					"GoName": "AffectedStatusRecommended",
+					"XML": "Recommended",
+					"JSON": "recommended"
+				}
+            ]
+        },
+        {
+            "TypeName": "RemedyType",
+            "Values": [
+				{
+					"GoName": "RemedyWorkaround",
+					"XML": "Workaround",
+					"JSON": "workaround"
+				},
+				{
+					"GoName": "RemedyMitigation",
+					"XML": "Mitigation",
+					"JSON": "mitigation"
+				},
+				{
+					"GoName": "RemedyVendorFix",
+					"XML": "Vendor Fix",
+					"JSON": "vendor_fix"
+				},
+				{
+					"GoName": "RemedyNoneAvailable",
+					"XML": "None Available",
+					"JSON": "none_available"
+				},
+				{
+					"GoName": "RemedyWillNotFix",
+					"XML": "Will Not Fix",
+					"JSON": "will_not_fix"
+				}
+            ]
+        },
+        {
+            "TypeName": "DocStatus",
+            "Values": [
+				{
+					"GoName": "DocStatusDraft",
+					"XML": "Draft",
+					"JSON": "draft"
+				},
+				{
+					"GoName": "DocStatusInterim",
+					"XML": "Interim",
+					"JSON": "interim"
+				},
+				{
+					"GoName": "DocStatusFinal",
+					"XML": "Final",
+					"JSON": "final"
+				}
+            ]
+        },
+        {
+            "TypeName": "ReferenceType",
+            "Values": [
+				{
+					"GoName": "ReferenceExternal",
+					"XML": "External",
+					"JSON": "external"
+				},
+				{
+					"GoName": "ReferenceSelf",
+					"XML": "Self",
+					"JSON": "self"
+				}
+            ]
+        },
+        {
+            "TypeName": "NoteType",
+            "Values": [
+				{
+					"GoName": "NoteDescription",
+					"XML": "Description",
+					"JSON": "description"
+				},
+				{
+					"GoName": "NoteDetails",
+					"XML": "Details",
+					"JSON": "details"
+				},
+				{
+					"GoName": "NoteFAQ",
+					"XML": "FAQ",
+					"JSON": "faq"
+				},
+				{
+					"GoName": "NoteGeneral",
+					"XML": "General",
+					"JSON": "general"
+				},
+				{
+					"GoName": "NoteLegalDisclaimer",
+					"XML": "Legal Disclaimer",
+					"JSON": "legal_disclaimer"
+				},
+				{
+					"GoName": "NoteOther",
+					"XML": "Other",
+					"JSON": "other"
+				},
+				{
+					"GoName": "NoteSummary",
+					"XML": "Summary",
+					"JSON": "summary"
+				}
+            ]
+        },
+        {
+            "TypeName": "PublisherType",
+            "Values":[
+				{
+					"GoName": "PubTypeVendor",
+					"XML": "Vendor",
+					"JSON": "vendor"
+				},
+				{
+					"GoName": "PubTypeDiscoverer",
+					"XML": "Discoverer",
+					"JSON": "discoverer"
+				},
+				{
+					"GoName": "PubTypeCoordinator",
+					"XML": "Coordinator",
+					"JSON": "coordinator"
+				},
+				{
+					"GoName": "PubTypeUser",
+					"XML": "User",
+					"JSON": "user"
+				},
+				{
+					"GoName": "PubTypeOther",
+					"XML": "Other",
+					"JSON": "other"
+				}
+            ]
+        },
+        {
+            "TypeName": "BranchType",
+            "Values":[
+				{
+					"GoName": "BranchVendor",
+					"XML": "Vendor",
+					"JSON": "vendor"
+				},
+				{
+					"GoName": "BranchProductFamily",
+					"XML": "Product Family",
+					"JSON": "product_family"
+				},
+				{
+					"GoName": "BranchProductName",
+					"XML": "Product Name",
+					"JSON": "product_name"
+				},
+				{
+					"GoName": "BranchProductVersion",
+					"XML": "Product Version",
+					"JSON": "product_version"
+				},
+				{
+					"GoName": "BranchPatchLevel",
+					"XML": "Patch Level",
+					"JSON": "patch_level"
+				},
+				{
+					"GoName": "BranchServicePack",
+					"XML": "Service Pack",
+					"JSON": "service_pack"
+				},
+				{
+					"GoName": "BranchArchitecture",
+					"XML": "Architecture",
+					"JSON": "architecture"
+				},
+				{
+					"GoName": "BranchLanguage",
+					"XML": "Language",
+					"JSON": "language"
+				},
+				{
+					"GoName": "BranchLegacy",
+					"XML": "Legacy",
+					"JSON": "legacy"
+				},
+				{
+					"GoName": "BranchSpecification",
+					"XML": "Specification",
+					"JSON": "specification"
+				},
+				{
+					"GoName": "BranchHostName",
+					"XML": "Host Name",
+					"JSON": "host_name"
+				},
+				{
+					"GoName": "BranchRealm",
+                    "XML": "Realm",
+					"JSON": "realm"
+				},
+				{
+					"GoName": "BranchResource",
+					"XML": "Resource",
+					"JSON": "resource"
+				}
+            ]
+        },
+        {
+            "TypeName": "ThreatType",
+            "Values":[
+				{
+					"GoName": "ThreatImpact",
+                    "XML": "Impact",
+					"JSON": "impact"
+				},
+				{
+					"GoName": "ThreatExploitStatus",
+                    "XML": "Exploit Status",
+					"JSON": "exploit_status"
+				},
+				{
+					"GoName": "ThreatTargetSet",
+                    "XML": "Target Set",
+					"JSON": "target_set"
+				}
+            ]
+        }
+	]
+}
