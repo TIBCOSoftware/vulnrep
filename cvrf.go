@@ -1,4 +1,7 @@
-// Copyright 2019, TIBCO Software Inc. All Rights Reserved
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Copyright 2019, TIBCO Software Inc. This file is subject to the license
+// terms contained in the license file that is distributed with this file.
 
 package vulnrep
 
@@ -33,6 +36,7 @@ type reportV11 struct {
 	Distribution      string                `xml:"DocumentDistribution,omitempty"`
 	AggregateSeverity *aggregateSeverityExp `xml:"AggregateSeverity,omitempty"`
 	References        []referenceExp        `xml:"DocumentReferences>Reference,omitempty"`
+	Acknowledgments   []acknowledgmentExp   `xml:"Acknowledgments>Acknowledgment,omitempty"`
 	ProductTree       productTreeExp        `xml:"http://www.icasi.org/CVRF/schema/prod/1.1 ProductTree"`
 	Vulnerabilities   []vulnerabilityXML    `xml:"http://www.icasi.org/CVRF/schema/vuln/1.1 Vulnerability"`
 }
@@ -319,7 +323,7 @@ func toProductTreeXML(pt ProductTree) productTreeExp {
 // and Relationships, and creates a single list of them
 func (ptx *productTreeExp) enumProducts() []*Product {
 
-	var results []*Product
+	var results []*Product //nolint: prealloc
 	for _, fp := range ptx.FullProductNames {
 		results = append(results, fp.asProduct())
 	}
@@ -487,7 +491,7 @@ func toRelationshipExp(rel Relationship) relationshipExp {
 
 func (rx relationshipExp) asRelationship(ctx *loadCtx) Relationship {
 
-	var prods []*Product
+	prods := make([]*Product, 0, len(rx.FullProductNames))
 	for _, fpn := range rx.FullProductNames {
 		prods = append(prods, ctx.prodMap[fpn.ProductID])
 	}
@@ -515,7 +519,7 @@ func toGroupExp(grp Group) groupExp {
 
 func (gx groupExp) asGroup(lookup map[ProductID]*Product) *Group {
 
-	var prodList []*Product
+	prodList := make([]*Product, 0, len(gx.ProductIDs))
 	for _, id := range gx.ProductIDs {
 		prodList = append(prodList, lookup[id])
 	}
@@ -931,7 +935,7 @@ func (lc *loadCtx) asProduct(id ProductID, loc string) *Product {
 }
 
 func (lc *loadCtx) asProducts(list []ProductID, loc string) []*Product {
-	var result []*Product
+	result := make([]*Product, 0, len(list))
 	for _, id := range list {
 		result = append(result, lc.asProduct(id, loc))
 	}
@@ -939,7 +943,7 @@ func (lc *loadCtx) asProducts(list []ProductID, loc string) []*Product {
 }
 
 func (lc *loadCtx) asGroups(list []GroupID, loc string) []*Group {
-	var result []*Group
+	result := make([]*Group, 0, len(list))
 	for _, id := range list {
 		grp := lc.groupMap[id]
 		if grp == nil {
@@ -973,7 +977,7 @@ func ParseXML(r io.Reader) (Report, error) {
 		var doc11 reportV11
 		err = xml.Unmarshal(data, &doc11)
 		// copy over to the 1.2 version of the data.
-		doc = reportV12(doc)
+		doc = reportV12(doc11)
 	} else if se.Name.Space == namespaceV12 {
 		err = xml.Unmarshal(data, &doc)
 	}

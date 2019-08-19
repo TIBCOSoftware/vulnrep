@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Copyright 2019, TIBCO Software Inc. This file is subject to the license
+// terms contained in the license file that is distributed with this file.
+
 package vulnrep
 
 import (
@@ -13,7 +18,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate go run genenums/genenums.go -definitions enums.json -destination enums.go
+//go:generate go run cmd/genenums/genenums.go -definitions enums.json -destination enums.go
 
 // Validator captures the list of errors and warnings found with the model.
 type Validator struct {
@@ -85,6 +90,7 @@ type GroupID string
 // RevisionStr represents a revision in the model.
 type RevisionStr string
 
+//nolint: gochecknoglobals
 var revisonStrRegEx = regexp.MustCompile(`^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){0,3}$`)
 
 // Check verifies that the Revision string is valid according to format.
@@ -392,7 +398,7 @@ type ProductTree struct {
 }
 
 func (pt *ProductTree) allProducts() []*Product {
-	var result []*Product
+	var result []*Product // nolint: prealloc
 	result = append(result, pt.Products...)
 	result = productsFromBranches(pt.Branches, result)
 	for _, leaf := range pt.Leaves {

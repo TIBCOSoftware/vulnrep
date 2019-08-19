@@ -1,4 +1,7 @@
-// Copyright 2019, TIBCO Software Inc.
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Copyright 2019, TIBCO Software Inc. This file is subject to the license
+// terms contained in the license file that is distributed with this file.
 
 package vulnrep
 
@@ -74,7 +77,7 @@ func cacheFile(url string, f string) error {
 	if err != nil {
 		return errors.Wrapf(err, "unable to open parent dir for caching %v", fn)
 	}
-	req, err := http.Get(url)
+	req, err := http.Get(url) //nolint: gosec
 	if err != nil {
 		return errors.Wrapf(err, "unable to fetch file %v", fn)
 	}

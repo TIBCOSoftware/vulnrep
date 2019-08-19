@@ -55,7 +55,7 @@ func parseArgs(appName string, args []string) (*config, error) {
 	return &result, nil
 }
 
-var helpMsg = `
+const helpMsg = `
 Generates a Go source file containing enumerations.
 
 The -destination option indicates the target source file to generate.
