@@ -102,6 +102,10 @@ func xmlElemAsString(d *xml.Decoder, start xml.StartElement) (string, error) {
 	return s, nil
 }
 
+func noQuotes(b []byte) string {
+	return strings.TrimSuffix(strings.TrimPrefix(string(b), "\""), "\"")
+}
+
 {{range .Enums}}
 {{$typeName := .TypeName -}}
 type {{.TypeName}} int
@@ -175,7 +179,7 @@ var gen{{.TypeName}}ToJSONStr = map[{{.TypeName}}]string{
 
 func (obj *{{.TypeName}}) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrTo{{.TypeName}}[string(data)]; !ok {
+	if *obj, ok = genJSONStrTo{{.TypeName}}[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized {{.TypeName}} value %v", string(data))
 	}
 	return nil

@@ -59,38 +59,33 @@ type reportV12 struct {
 
 // xmlToModel converts the vulnerability report from CVRF (XML format) to the all-
 // encompassing internal model.
-func (r *reportV12) asReport() (Report, loadCtx) {
+func (r *reportV12) asReport() (Report, error) {
 
-	var ctx loadCtx
-	var res Report
-
-	// parse all the metadata for the document
-	res.Meta.Title = r.Title
-	res.Meta.Type = r.Type
-	res.Meta.Publisher = Publisher(r.Publisher)
-	res.Meta.Tracking = r.Tracking.asTracking()
-
-	for _, nx := range r.DocumentNotes {
-		res.Meta.Notes = append(res.Meta.Notes, Note(nx))
+	meta := ReportMeta{
+		Title:             r.Title,
+		Type:              r.Type,
+		Publisher:         Publisher(r.Publisher),
+		Tracking:          r.Tracking.asTracking(),
+		Notes:             asNotes(r.DocumentNotes),
+		Distribution:      r.Distribution,
+		AggregateSeverity: r.AggregateSeverity.asAggregateSeverity(),
+		References:        asReferences(r.References),
+		Acknowledgments:   asAcknowledgments(r.Acknowledgments),
 	}
 
-	res.Meta.Distribution = r.Distribution
-	res.Meta.AggregateSeverity = r.AggregateSeverity.asAggregateSeverity()
+	productTree, ctx := r.ProductTree.asProductTree()
 
-	for _, rx := range r.References {
-		res.Meta.References = append(res.Meta.References, Reference(rx))
-	}
-
-	for _, ack := range r.Acknowledgments {
-		res.Meta.Acknowledgments = append(res.Meta.Acknowledgments, Acknowledgment(ack))
-	}
-
-	res.ProductTree = r.ProductTree.asProductTree(&ctx)
-
+	vulns := make([]Vulnerability, 0, len(r.Vulnerabilities))
 	for _, vx := range r.Vulnerabilities {
-		res.Vulnerabilities = append(res.Vulnerabilities, vx.asVulnerability(&ctx))
+		vulns = append(vulns, vx.asVulnerability(ctx))
 	}
-	return res, ctx
+
+	rep := Report{
+		Meta:            meta,
+		ProductTree:     productTree,
+		Vulnerabilities: vulns}
+
+	return rep, ctx.err()
 }
 
 func toReportXML(r Report) reportV12 {
@@ -130,7 +125,7 @@ type publisherExp struct {
 	IssuingAuthority string        `xml:"IssuingAuthority" json:"issuing_authority"`
 }
 
-// trackingXML captures the tracking data for a CVRF document
+// trackingExp used to import / export tracking data about a vulnerability report.
 type trackingExp struct {
 	ID                 string        `xml:"Identification>ID" json:"id"`
 	Aliases            []string      `xml:"Identification>Alias,omitempty" json:"aliases,omitempty"`
@@ -240,6 +235,14 @@ type noteExp struct {
 	Text     string   `xml:",chardata" json:"text"`
 }
 
+func asNotes(notes []noteExp) []Note {
+	result := make([]Note, 0, len(notes))
+	for _, note := range notes {
+		result = append(result, Note(note))
+	}
+	return result
+}
+
 func toNotesXML(notes []Note) []noteExp {
 	result := make([]noteExp, 0, len(notes))
 	for _, note := range notes {
@@ -253,6 +256,14 @@ type referenceExp struct {
 	Type        ReferenceType `xml:"Type,attr,omitempty" json:"type,omitempty"`
 	URL         string        `xml:"URL" json:"url"`
 	Description string        `xml:"Description" json:"description"`
+}
+
+func asReferences(refs []referenceExp) []Reference {
+	result := make([]Reference, 0, len(refs))
+	for _, ref := range refs {
+		result = append(result, Reference(ref))
+	}
+	return result
 }
 
 func toReferenceExps(refs []Reference) []referenceExp {
@@ -275,6 +286,14 @@ func toAcknowledgmentExps(acks []Acknowledgment) []acknowledgmentExp {
 	result := make([]acknowledgmentExp, 0, len(acks))
 	for _, ack := range acks {
 		result = append(result, acknowledgmentExp(ack))
+	}
+	return result
+}
+
+func asAcknowledgments(acks []acknowledgmentExp) []Acknowledgment {
+	result := make([]Acknowledgment, 0, len(acks))
+	for _, ack := range acks {
+		result = append(result, Acknowledgment(ack))
 	}
 	return result
 }
@@ -342,16 +361,19 @@ func (ptx *productTreeExp) enumProducts() []*Product {
 
 // asProductTree converts a ProductTreeXML structure into a ProductTree,
 // mapping data elements as needed.
-func (ptx productTreeExp) asProductTree(ctx *loadCtx) ProductTree {
+func (ptx productTreeExp) asProductTree() (ProductTree, *loadCtx) {
+
+	ctx := &loadCtx{
+		prodMap:  make(map[ProductID]*Product),
+		groupMap: make(map[GroupID]*Group),
+	}
 
 	var result ProductTree
 	prods := ptx.enumProducts()
-	ctx.prodMap = make(map[ProductID]*Product)
 	for _, prd := range prods {
 		ctx.prodMap[prd.ID] = prd
 	}
 	// create groups, using the product lookup map.
-	ctx.groupMap = make(map[GroupID]*Group)
 	for _, xmlGrp := range ptx.ProductGroups {
 		newGrp := xmlGrp.asGroup(ctx.prodMap)
 		ctx.groupMap[newGrp.ID] = newGrp
@@ -371,7 +393,7 @@ func (ptx productTreeExp) asProductTree(ctx *loadCtx) ProductTree {
 		result.Relationships = append(result.Relationships,
 			rel.asRelationship(ctx))
 	}
-	return result
+	return result, ctx
 }
 
 func asBranchesAndLeaves(prods map[ProductID]*Product, expBranches []branchExp) ([]Branch, []ProductLeaf) {
@@ -538,7 +560,7 @@ type vulnerabilityXML struct {
 	Notes           []noteExp           `xml:"Notes>Note"`
 	DiscoveryDate   time.Time           `xml:"DiscoveryDate,omitempty"`
 	ReleaseDate     time.Time           `xml:"ReleaseDate,omitempty"`
-	Involvements    []involvementExp    `xml:"Involvements>Involvement,omitempty"`
+	Involvements    []Involvement       `xml:"Involvements>Involvement,omitempty"`
 	CVE             string              `xml:"CVE,omitempty"`
 	CWE             *cweExp             `xml:"CWE,omitempty"`
 	Statuses        []statusXML         `xml:"ProductStatuses>Status,omitempty"`
@@ -558,7 +580,7 @@ func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
 		Notes:           toNotesXML(v.Notes),
 		DiscoveryDate:   v.DiscoveryDate,
 		ReleaseDate:     v.ReleaseDate,
-		Involvements:    toInvolvmentExps(v.Involvements),
+		Involvements:    v.Involvements,
 		CVE:             v.CVE,
 		CWE:             toCWEExp(v.CWE),
 		Statuses:        toStatusXML(v.Statuses),
@@ -571,52 +593,27 @@ func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
 
 func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
 
-	notes := make([]Note, 0, len(vx.Notes))
-	for _, nx := range vx.Notes {
-		notes = append(notes, Note(nx))
-	}
-
-	involvements := make([]Involvement, 0, len(vx.Involvements))
-	for _, ix := range vx.Involvements {
-		involvements = append(involvements, Involvement(ix))
-	}
-
-	threats := make([]Threat, 0, len(vx.Threats))
-	for _, th := range vx.Threats {
-		threats = append(threats, th.asThreat(ctx))
-	}
-
 	remediations := make([]Remediation, 0, len(vx.Remediations))
 	for _, rm := range vx.Remediations {
 		remediations = append(remediations, rm.asRemediation(ctx))
-	}
-
-	refs := make([]Reference, 0, len(vx.References))
-	for _, ref := range vx.References {
-		refs = append(refs, Reference(ref))
-	}
-
-	acks := make([]Acknowledgment, 0, len(vx.Acknowledgments))
-	for _, ack := range vx.Acknowledgments {
-		acks = append(acks, Acknowledgment(ack))
 	}
 
 	return Vulnerability{
 		Ordinal:         vx.Ordinal,
 		Title:           vx.Title,
 		ID:              vx.ID.asVulnID(),
-		Notes:           notes,
+		Notes:           asNotes(vx.Notes),
 		DiscoveryDate:   vx.DiscoveryDate,
 		ReleaseDate:     vx.ReleaseDate,
-		Involvements:    involvements,
+		Involvements:    vx.Involvements,
 		CVE:             vx.CVE,
-		CWE:             vx.CWE.asCWEExp(),
+		CWE:             vx.CWE.asCWE(),
 		Statuses:        asStatus(ctx, vx.Statuses),
-		Threats:         threats,
+		Threats:         asThreats(ctx, vx.Threats),
 		CVSS:            vx.CVSSScoreSets.asScoreSet(ctx),
 		Remediations:    remediations,
-		References:      refs,
-		Acknowledgments: acks}
+		References:      asReferences(vx.References),
+		Acknowledgments: asAcknowledgments(vx.Acknowledgments)}
 }
 
 // idXML captures the XML identifier for a vulnerabilIty
@@ -657,7 +654,7 @@ func toCWEExp(cwe *CWE) *cweExp {
 	return result
 }
 
-func (cwe *cweExp) asCWEExp() *CWE {
+func (cwe *cweExp) asCWE() *CWE {
 	if cwe == nil {
 		return nil
 	}
@@ -718,21 +715,6 @@ func asStatus(ctx *loadCtx, statuses []statusXML) Status {
 	return result
 }
 
-// InvolvementXML captures the list of involvements for a particular vulnerability
-type involvementExp struct {
-	Party       PublisherType         `xml:"Party,attr" json:"party"`
-	Status      InvolvementStatusType `xml:"Status,attr" json:"status"`
-	Description string                `xml:"Description,omitempty" json:"description,omitempty"`
-}
-
-func toInvolvmentExps(invs []Involvement) []involvementExp {
-	result := make([]involvementExp, 0, len(invs))
-	for _, inv := range invs {
-		result = append(result, involvementExp(inv))
-	}
-	return result
-}
-
 // ThreatXML captures the XML representation of the threat types
 type threatExp struct {
 	Type        ThreatType  `xml:"Type,attr" json:"type"`
@@ -743,23 +725,26 @@ type threatExp struct {
 }
 
 func toThreatExp(th Threat) threatExp {
-	groups := make([]GroupID, 0, len(th.Groups))
-	for _, grp := range th.Groups {
-		groups = append(groups, grp.ID)
-	}
-
 	return threatExp{
 		Type:        th.Type,
 		Description: th.Description,
 		Date:        th.Date,
 		ProductIDs:  toProductIDs(th.Products),
-		GroupIDs:    groups}
+		GroupIDs:    toGroupIDs(th.Groups)}
 }
 
 func toThreatExps(threats []Threat) []threatExp {
 	result := make([]threatExp, 0, len(threats))
 	for _, th := range threats {
 		result = append(result, toThreatExp(th))
+	}
+	return result
+}
+
+func asThreats(ctx *loadCtx, threats []threatExp) []Threat {
+	result := make([]Threat, 0, len(threats))
+	for _, th := range threats {
+		result = append(result, th.asThreat(ctx))
 	}
 	return result
 }
@@ -863,6 +848,15 @@ func (ssx scoreSetV3Exp) asScoreSet(ctx *loadCtx) ScoreSet {
 		Products:           ctx.asProducts(ssx.ProductIDs, "cvss score")}
 }
 
+func asScoreSets(ctx *loadCtx, scores []scoreSetV3Exp) []ScoreSet {
+	v3s := make([]ScoreSet, 0, len(scores))
+	for _, v3 := range scores {
+		v3s = append(v3s, v3.asScoreSet(ctx))
+	}
+
+	return v3s
+}
+
 // remediationExp captures the XML representation for remediations of a vulnerability
 type remediationExp struct {
 	Type        RemedyType  `xml:"Type,attr" json:"type"`
@@ -872,6 +866,14 @@ type remediationExp struct {
 	URL         string      `xml:"URL,omitempty" json:"url"`
 	Products    []ProductID `xml:"ProductID,omitempty" json:"products"`
 	Groups      []GroupID   `xml:"GroupID,omitempty" json:"groups"`
+}
+
+func asRemediations(ctx *loadCtx, remediations []remediationExp) []Remediation {
+	result := make([]Remediation, 0, len(remediations))
+	for _, rem := range remediations {
+		result = append(result, rem.asRemediation(ctx))
+	}
+	return result
 }
 
 func (rem remediationExp) asRemediation(ctx *loadCtx) Remediation {
@@ -922,14 +924,21 @@ type loadCtx struct {
 	groupMap map[GroupID]*Group
 }
 
-func (lc *loadCtx) err(msg string) {
+func (lc *loadCtx) err() error {
+	if len(lc.issues) == 0 {
+		return nil
+	}
+	return &LoadErr{Issues: lc.issues}
+}
+
+func (lc *loadCtx) issue(msg string) {
 	lc.issues = append(lc.issues, msg)
 }
 
 func (lc *loadCtx) asProduct(id ProductID, loc string) *Product {
 	prd := lc.prodMap[id]
 	if prd == nil {
-		lc.err(fmt.Sprintf("unable to find product id %v for %v", id, loc))
+		lc.issue(fmt.Sprintf("unable to find product id %v for %v", id, loc))
 	}
 	return prd
 }
@@ -947,7 +956,7 @@ func (lc *loadCtx) asGroups(list []GroupID, loc string) []*Group {
 	for _, id := range list {
 		grp := lc.groupMap[id]
 		if grp == nil {
-			lc.err(fmt.Sprintf("unable to find group id %v for %v", id, loc))
+			lc.issue(fmt.Sprintf("unable to find group id %v for %v", id, loc))
 		}
 		result = append(result, grp)
 	}
@@ -985,11 +994,18 @@ func ParseXML(r io.Reader) (Report, error) {
 		return emptyReport, errors.Wrap(err, "problem unmarshalling XML")
 	}
 
-	res, ctx := doc.asReport()
-	if len(ctx.issues) > 0 {
-		return res, &LoadErr{Issues: ctx.issues}
+	return checkCompliance(doc.asReport())
+}
+
+func checkCompliance(rep Report, err error) (Report, error) {
+	if err != nil {
+		return rep, err
 	}
-	return res, nil
+	val := rep.check()
+	if len(val.Errors) > 0 {
+		return rep, &LoadErr{Issues: val.Errors}
+	}
+	return rep, nil
 }
 
 func firstElement(rawFile []byte) (xml.StartElement, error) {

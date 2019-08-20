@@ -584,9 +584,9 @@ func (vi *VulnID) check(val *Validator) {
 
 // Involvement captures the involvement of third parties.
 type Involvement struct {
-	Party       PublisherType
-	Status      InvolvementStatusType
-	Description string
+	Party       PublisherType         `xml:"Party,attr" json:"party"`
+	Status      InvolvementStatusType `xml:"Status,attr" json:"status"`
+	Description string                `xml:"Description,omitempty" json:"description,omitempty"`
 }
 
 func (i *Involvement) check(val *Validator) {

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"strings"
 )
 
 func xmlElemAsString(d *xml.Decoder, start xml.StartElement) (string, error) {
@@ -14,6 +15,10 @@ func xmlElemAsString(d *xml.Decoder, start xml.StartElement) (string, error) {
 		return "", err
 	}
 	return s, nil
+}
+
+func noQuotes(b []byte) string {
+	return strings.TrimSuffix(strings.TrimPrefix(string(b), "\""), "\"")
 }
 
 type RelationshipType int
@@ -102,7 +107,7 @@ var genRelationshipTypeToJSONStr = map[RelationshipType]string{
 
 func (obj *RelationshipType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToRelationshipType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToRelationshipType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized RelationshipType value %v", string(data))
 	}
 	return nil
@@ -213,7 +218,7 @@ var genInvolvementStatusTypeToJSONStr = map[InvolvementStatusType]string{
 
 func (obj *InvolvementStatusType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToInvolvementStatusType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToInvolvementStatusType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized InvolvementStatusType value %v", string(data))
 	}
 	return nil
@@ -329,7 +334,7 @@ var genAffectedStatusTypeToJSONStr = map[AffectedStatusType]string{
 
 func (obj *AffectedStatusType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToAffectedStatusType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToAffectedStatusType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized AffectedStatusType value %v", string(data))
 	}
 	return nil
@@ -435,7 +440,7 @@ var genRemedyTypeToJSONStr = map[RemedyType]string{
 
 func (obj *RemedyType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToRemedyType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToRemedyType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized RemedyType value %v", string(data))
 	}
 	return nil
@@ -531,7 +536,7 @@ var genDocStatusToJSONStr = map[DocStatus]string{
 
 func (obj *DocStatus) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToDocStatus[string(data)]; !ok {
+	if *obj, ok = genJSONStrToDocStatus[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized DocStatus value %v", string(data))
 	}
 	return nil
@@ -622,7 +627,7 @@ var genReferenceTypeToJSONStr = map[ReferenceType]string{
 
 func (obj *ReferenceType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToReferenceType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToReferenceType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized ReferenceType value %v", string(data))
 	}
 	return nil
@@ -738,7 +743,7 @@ var genNoteTypeToJSONStr = map[NoteType]string{
 
 func (obj *NoteType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToNoteType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToNoteType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized NoteType value %v", string(data))
 	}
 	return nil
@@ -844,7 +849,7 @@ var genPublisherTypeToJSONStr = map[PublisherType]string{
 
 func (obj *PublisherType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToPublisherType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToPublisherType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized PublisherType value %v", string(data))
 	}
 	return nil
@@ -990,7 +995,7 @@ var genBranchTypeToJSONStr = map[BranchType]string{
 
 func (obj *BranchType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToBranchType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToBranchType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized BranchType value %v", string(data))
 	}
 	return nil
@@ -1086,7 +1091,7 @@ var genThreatTypeToJSONStr = map[ThreatType]string{
 
 func (obj *ThreatType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToThreatType[string(data)]; !ok {
+	if *obj, ok = genJSONStrToThreatType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized ThreatType value %v", string(data))
 	}
 	return nil
