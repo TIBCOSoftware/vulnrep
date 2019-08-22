@@ -3,6 +3,37 @@
 // Copyright 2019, TIBCO Software Inc. This file is subject to the license
 // terms contained in the license file that is distributed with this file.
 
+// Usage: vulnrepconv -input <fname> [-output <fname>]
+//
+// The tool vulnrepconv converts vulnerability reports to/from CVRF(xml) and CSAF(json)
+// formats. Note that there are some features of the JSON format not available in the XML
+// format (notably, translation support), so this tool cannot fully convert a document
+// from JSON --> XML --> JSON, but it will get about as close as possible. Round
+// trips from XML --> JSON --> XML will work. See the Limitations section for details.
+//
+// The input file is required. If no output file is indicated, then the output is
+// written to STDOUT.
+//
+// The type of file is assumed based on file extension. Input and output files
+// must have either a ".xml" or a ".json" extension.
+//
+// Limitations
+//
+// Round trip conversions from XML-->JSON-->XML work, but may not be identical, due
+// to a number of factors:
+// - namespace prefixes might change
+// - whitespaces might change
+// - attribute ordering might change
+// - xml:lang attributes will be discarded
+// - CDATA and comments may change
+//
+// A carefully constructed XML file, however, will be able to successfully round-trip
+// back to a byte-for-byte identical file.
+//
+// See Also
+//
+// The tool is primarily a command line wrapper around the vulnrep package. For
+// details about vulnerability representation, please see that package.
 package main
 
 import (

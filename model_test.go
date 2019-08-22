@@ -59,7 +59,6 @@ func TestXMLRoundTrip(t *testing.T) {
 	var jsonOut bytes.Buffer
 	err = r.ToCSAF(&jsonOut)
 	assert.NoError(t, err)
-	fmt.Printf("JSON:\n===========\n%v", jsonOut.String())
 }
 
 func cacheFile(url string, f string) error {
@@ -89,7 +88,7 @@ func cacheFile(url string, f string) error {
 	return ioutil.WriteFile(f, raw, 0664)
 }
 
-const oasisGitRepoRaw = "https://raw.githubusercontent.com/oasis-tcs/csaf/master"
+const oasisGitRepoRaw = "https://raw.githubusercontent.com/oasis-tcs/csaf/master/"
 
 func TestCompliantOutput(t *testing.T) {
 
@@ -102,6 +101,8 @@ func TestCompliantOutput(t *testing.T) {
 	jsonSchema := filepath.Join(os.TempDir(), "vulrepschemas", "csaf_schema.json")
 	err = cacheFile(oasisGitRepoRaw+"sandbox/csaf_2.0/json_schema/csaf_json_schema.json",
 		jsonSchema)
+
+	// TODO - validate output.
 	assert.NoError(t, err)
 
 }
@@ -118,3 +119,14 @@ func TestCompliantOutput(t *testing.T) {
 // 		}
 // 	}
 // }
+
+func TestChecks(t *testing.T) {
+
+	rep := Report{
+		Vulnerabilities: []Vulnerability{
+			Vulnerability{},
+		},
+	}
+	val := rep.check()
+	assert.True(t, len(val.Errors) > 0)
+}

@@ -41,42 +41,38 @@ func (v *Validator) checkProducts(prods []*Product, from string) {
 	}
 }
 
-type collector interface {
-	err(msg string)
-}
-
 func (v *Validator) err(msg string) { v.Errors = append(v.Errors, msg) }
 
 // nonZeroDatee generates an error for zero date values.
-func nonZeroDate(c collector, t time.Time, msg string) {
+func (v *Validator) nonZeroDate(t time.Time, msg string) {
 	if t.IsZero() {
-		c.err(msg)
+		v.err(msg)
 	}
 }
 
-func nonEmptyLen(c collector, length int, msg string) {
+func (v *Validator) nonEmptyLen(length int, msg string) {
 	if length == 0 {
-		c.err(msg)
+		v.err(msg)
 	}
 }
 
-func nonEmptyStr(c collector, str string, msg string) {
+func (v *Validator) nonEmptyStr(str string, msg string) {
 	if len(str) == 0 {
-		c.err(msg)
+		v.err(msg)
 	}
 }
 
-func listOfNonEmptyStr(c collector, strs []string, msg string) {
+func (v *Validator) listOfNonEmptyStr(strs []string, msg string) {
 	for _, s := range strs {
-		nonEmptyStr(c, s, msg)
+		v.nonEmptyStr(s, msg)
 	}
 }
 
-func urlVal(c collector, urlStr string, ctx string) {
-	nonEmptyStr(c, urlStr, fmt.Sprintf("empty %v URL", ctx))
+func (v *Validator) urlVal(urlStr string, ctx string) {
+	v.nonEmptyStr(urlStr, fmt.Sprintf("empty %v URL", ctx))
 	_, err := url.Parse(urlStr)
 	if err != nil {
-		c.err(fmt.Sprintf("invalid %v URL %v: %v", ctx, urlStr, err))
+		v.err(fmt.Sprintf("invalid %v URL %v: %v", ctx, urlStr, err))
 	}
 
 }
@@ -208,8 +204,8 @@ type ReportMeta struct {
 
 // Check identifies all the possible errors with the ReportMeta information.
 func (rm *ReportMeta) check(val *Validator) {
-	nonEmptyStr(val, rm.Title, "title must not be empty")
-	nonEmptyStr(val, rm.Type, "type must not be empty")
+	val.nonEmptyStr(rm.Title, "title must not be empty")
+	val.nonEmptyStr(rm.Type, "type must not be empty")
 	rm.Publisher.check(val)
 	rm.Tracking.check(val)
 
@@ -261,16 +257,16 @@ type Generator struct {
 }
 
 func (t Tracking) check(val *Validator) {
-	nonEmptyStr(val, t.ID, "document ID must not be empty")
-	listOfNonEmptyStr(val, t.Aliases, "alias IDs must not be empty")
+	val.nonEmptyStr(t.ID, "document ID must not be empty")
+	val.listOfNonEmptyStr(t.Aliases, "alias IDs must not be empty")
 	t.Status.check(val)
 	t.Version.check(val, "invalid document version")
-	nonEmptyLen(val, len(t.Revisions), "must have at least one document revision")
+	val.nonEmptyLen(len(t.Revisions), "must have at least one document revision")
 	for _, rev := range t.Revisions {
 		rev.check(val)
 	}
-	nonZeroDate(val, t.InitialReleaseDate, "initial release date not set")
-	nonZeroDate(val, t.CurrentReleaseDate, "current release date not set")
+	val.nonZeroDate(t.InitialReleaseDate, "initial release date not set")
+	val.nonZeroDate(t.CurrentReleaseDate, "current release date not set")
 	// no constraints on GeneratorEngine or GeneratorDate
 
 }
@@ -300,8 +296,8 @@ type Reference struct {
 // Check verifies that a reference is correct.
 func (r *Reference) check(val *Validator) {
 	r.Type.check(val)
-	nonEmptyStr(val, r.Description, "empty description for a reference")
-	urlVal(val, r.URL, "reference")
+	val.nonEmptyStr(r.Description, "empty description for a reference")
+	val.urlVal(r.URL, "reference")
 }
 
 // Revision captures the xml representation of document revisions.
@@ -314,7 +310,7 @@ type Revision struct {
 // Check verifies the document Revision.
 func (r Revision) check(val *Validator) {
 	r.Number.check(val, "revision str not valid for document revision")
-	nonEmptyStr(val, r.Description,
+	val.nonEmptyStr(r.Description,
 		fmt.Sprintf("description not valid for document revision %v", r.Number))
 	// XMLSchema of CVRF indicates no revision date required.
 	//val.nonZeroDate(r.Date, "revision date not specified")
@@ -336,7 +332,7 @@ func (n *Note) check(val *Validator) {
 	if n.Ordinal <= 0 {
 		val.err("invalid ordinal value")
 	}
-	nonEmptyStr(val, n.Text, "note must have text content")
+	val.nonEmptyStr(n.Text, "note must have text content")
 }
 
 // AggregateSeverity captures the publishers declaration of the severity
@@ -348,7 +344,7 @@ type AggregateSeverity struct {
 
 // Check ensures a valid aggregate severity
 func (as *AggregateSeverity) check(val *Validator) {
-	nonEmptyStr(val, as.Text, "aggregate severity is empty")
+	val.nonEmptyStr(as.Text, "aggregate severity is empty")
 	// Namespace may be empty.
 	_, err := url.Parse(as.Namespace)
 	if err != nil {
@@ -366,9 +362,9 @@ type Acknowledgment struct {
 
 // Check ensures that the acknowledgments meet criteria from the spec.
 func (a *Acknowledgment) check(val *Validator) {
-	listOfNonEmptyStr(val, a.Names, "empty name given for acknowledgment")
-	listOfNonEmptyStr(val, a.Organizations, "empty organizaton given for acknowledgment")
-	listOfNonEmptyStr(val, a.URLs, "empty URLs given for acknowledgment")
+	val.listOfNonEmptyStr(a.Names, "empty name given for acknowledgment")
+	val.listOfNonEmptyStr(a.Organizations, "empty organizaton given for acknowledgment")
+	val.listOfNonEmptyStr(a.URLs, "empty URLs given for acknowledgment")
 
 	for _, u := range a.URLs {
 		_, err := url.Parse(u)
@@ -455,7 +451,7 @@ func productsFromBranches(branches []Branch, list []*Product) []*Product {
 
 // Check verifies that the branches are valid
 func (b *Branch) check(val *Validator) {
-	nonEmptyStr(val, b.Name, "invalid branch name")
+	val.nonEmptyStr(b.Name, "invalid branch name")
 	b.Type.check(val)
 	for _, child := range b.Branches {
 		child.check(val)
@@ -475,7 +471,7 @@ type ProductLeaf struct {
 
 // Check verifies that the ProductLeaf is valid
 func (pl *ProductLeaf) check(val *Validator) {
-	nonEmptyStr(val, pl.Name, "invalid branch leaf name")
+	val.nonEmptyStr(pl.Name, "invalid branch leaf name")
 	pl.Type.check(val)
 	pl.Product.check(val)
 }
@@ -489,8 +485,8 @@ type Product struct {
 
 // Check verifies that a product is valid.
 func (p *Product) check(val *Validator) {
-	nonEmptyStr(val, string(p.ID), "invalid product ID")
-	nonEmptyStr(val, p.Name, "invalid product name")
+	val.nonEmptyStr(string(p.ID), "invalid product ID")
+	val.nonEmptyStr(p.Name, "invalid product name")
 }
 
 // Relationship captures relationships between products.
@@ -577,7 +573,7 @@ func (vi *VulnID) check(val *Validator) {
 	if vi == nil {
 		return
 	}
-	nonEmptyStr(val, vi.SystemName, "vulnerability id system name")
+	val.nonEmptyStr(vi.SystemName, "vulnerability id system name")
 	// oddly enough, the XMLSchema form of this allows the ID to be
 	// empty
 }
@@ -632,7 +628,7 @@ type Threat struct {
 
 func (th *Threat) check(val *Validator) {
 	th.Type.check(val)
-	nonEmptyStr(val, th.Description, "threat description")
+	val.nonEmptyStr(th.Description, "threat description")
 	val.checkProducts(th.Products, "threat")
 	for _, g := range th.Groups {
 		if !val.groupMap[g] {
@@ -647,7 +643,12 @@ type CVSSScoreSets struct {
 	V3 []ScoreSet
 }
 
-func (cvss CVSSScoreSets) check(val *Validator) {
+// check validates the contents of a score set - note that a nil score set is
+// allowed.
+func (cvss *CVSSScoreSets) check(val *Validator) {
+	if cvss == nil {
+		return
+	}
 	checkScoreSets(cvss.V2, val)
 	checkScoreSets(cvss.V3, val)
 }
@@ -684,9 +685,9 @@ type Remediation struct {
 
 func (r *Remediation) check(val *Validator) {
 	r.Type.check(val)
-	nonEmptyStr(val, r.Description, "remediation description")
+	val.nonEmptyStr(r.Description, "remediation description")
 	for _, s := range r.Entitlement {
-		nonEmptyStr(val, s, "entitlement")
+		val.nonEmptyStr(s, "entitlement")
 	}
-	urlVal(val, r.URL, "remediation")
+	val.urlVal(r.URL, "remediation")
 }
