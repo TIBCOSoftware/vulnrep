@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+// ParseJSON reads the JSON format of vulnerability report.
+//
+// Note that this method validates the input document for compliance before
+// returning it (for example, an empty description). All compliance problems are
+// flagged as an error.
 func ParseJSON(r io.Reader) (Report, error) {
 	var emptyReport Report
 
@@ -138,6 +143,7 @@ func (vj vulnerabilityJSON) asVulnerability(ctx *loadCtx) Vulnerability {
 		Acknowledgments: asAcknowledgments(vj.Acknowledgments)}
 }
 
+//nolint: dupl
 func toVulnerabilityJSON(v Vulnerability) vulnerabilityJSON {
 	return vulnerabilityJSON{
 		Ordinal:         v.Ordinal,

@@ -5,7 +5,13 @@
 - [x] LICENSE.md
 - [x] license on source files
 - [x] README.md
-- [x]Correct years in copyright statements
+- [x] Correct years in copyright statements
+- [x] README.md for vulnrepconv tool
+- [x] README.md for genenums tool
+
+## Fixes
+
+- [ ] CVSS scoring serialization doesn't match json-schema.
 
 ## Missing Functionality
 
@@ -32,7 +38,8 @@
 
 ## Quality Improvements
 
-- [x] fix issues from golangci-lint --enable-all
+- [x] fix issues from golangci-lint
+- [x] fix issues with golint (why doesn't this match golangci-lint)
 - [ ] CPE validation
 - [ ] CWE validation
 - [ ] CVSS validation
@@ -41,21 +48,23 @@
 
 ## Doc Improvement
 
-- [ ] add doc.go for package level documentation
-- [ ] documentation of the public types
+- [x] add doc.go for package level documentation
+- [x] documentation of the public types
 
 ## Test Cases
 
+- [ ] validate JSON output against JSON schema to ensure that it only uses
+  expected properties in JSON
 - [ ] test cases for every enumerated value
 - [ ] Full coverage with test cases
 - [ ] verify "omitempty" markup (XML mostly) by creating stripped down XML files
-- [ ] test output to ensure that it only uses standard properties in JSON?
-- [ ] verify that Reports generate in Go, when serialized, validate against JSON
-  schema and XML Schema.
+- [ ] validate that XML output validates against the XML Schema.
+- [ ] test case for complete round trip - save XML to JSON, then back again.
 
 ## Proposed Changes
 
 - [ ] Drop "ordinal" from JSON output (applies to vulnerabilities and notes)?
+- [ ] Add $schema entry?
 - [ ] use JSON schema for CVSS?
 - [ ] Change CVSSScoreSets to just "Scoring" in JSON, with children for v3.0 v3.1,
   etc.

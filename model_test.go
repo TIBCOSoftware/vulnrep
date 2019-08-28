@@ -27,7 +27,7 @@ func TestXMLRoundTrip(t *testing.T) {
 	assert.NoError(t, err)
 
 	// strictly speaking, all these verifications that the doc loaded properly
-	// are redundant with marshalling the doc back out, and comparing the results,
+	// are redundant with marshaling the doc back out, and comparing the results,
 	// except that having these tests here helps identify if anything went wrong
 	// in the unmarshalling process.
 	// verify meta info.
@@ -123,9 +123,7 @@ func TestCompliantOutput(t *testing.T) {
 func TestChecks(t *testing.T) {
 
 	rep := Report{
-		Vulnerabilities: []Vulnerability{
-			Vulnerability{},
-		},
+		Vulnerabilities: []Vulnerability{{}},
 	}
 	val := rep.check()
 	assert.True(t, len(val.Errors) > 0)

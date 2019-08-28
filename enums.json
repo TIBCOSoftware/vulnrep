@@ -8,6 +8,7 @@
 	"Enums": [
 		{
 			"TypeName": "RelationshipType",
+			"Comment": "RelationshipType defines possible relations between components.",
 			"Values": [
 				{
 					"GoName": "RelationshipDefaultComponentOf",
@@ -37,7 +38,8 @@
 			]
         },
         {
-            "TypeName": "InvolvementStatusType",
+			"TypeName": "InvolvementStatusType",
+			"Comment": "InvolvementStatusType captures the ongoing involvement of other parties",
             "Values": [
 				{
 					"GoName": "InvolvementStatusOpen",
@@ -73,6 +75,7 @@
         },
         {
             "TypeName": "AffectedStatusType",
+			"Comment": "AffectedStatusType only used in XML - captures the status of affected components.",
             "Values": [
 				{
 					"GoName": "AffectedStatusFirstAffected",
@@ -112,7 +115,8 @@
             ]
         },
         {
-            "TypeName": "RemedyType",
+			"TypeName": "RemedyType",
+			"Comment": "RemedyType enumerates the types of remedies.",
             "Values": [
 				{
 					"GoName": "RemedyWorkaround",
@@ -142,7 +146,8 @@
             ]
         },
         {
-            "TypeName": "DocStatus",
+			"TypeName": "DocStatus",
+			"Comment": "DocStatus enumerates the possible states of a document.",
             "Values": [
 				{
 					"GoName": "DocStatusDraft",
@@ -162,7 +167,8 @@
             ]
         },
         {
-            "TypeName": "ReferenceType",
+			"TypeName": "ReferenceType",
+			"Comment": "ReferenceType enumerates whether a references in self or external.",
             "Values": [
 				{
 					"GoName": "ReferenceExternal",
@@ -177,7 +183,8 @@
             ]
         },
         {
-            "TypeName": "NoteType",
+			"TypeName": "NoteType",
+			"Comment": "NoteType enuemrates the different types of Notes.",
             "Values": [
 				{
 					"GoName": "NoteDescription",
@@ -217,7 +224,8 @@
             ]
         },
         {
-            "TypeName": "PublisherType",
+			"TypeName": "PublisherType",
+			"Comment": "PublisherType enumerates the different publishers of vulnerabilities.",
             "Values":[
 				{
 					"GoName": "PubTypeVendor",
@@ -247,7 +255,8 @@
             ]
         },
         {
-            "TypeName": "BranchType",
+			"TypeName": "BranchType",
+			"Comment": "BranchType captures the type of branch in the product tree.",
             "Values":[
 				{
 					"GoName": "BranchVendor",
@@ -317,7 +326,8 @@
             ]
         },
         {
-            "TypeName": "ThreatType",
+			"TypeName": "ThreatType",
+			"Comment": "ThreatType captures the type of threat.",
             "Values":[
 				{
 					"GoName": "ThreatImpact",

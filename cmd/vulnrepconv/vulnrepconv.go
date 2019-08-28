@@ -47,9 +47,10 @@ import (
 )
 
 type toConvert struct {
-	input  string
-	output string
-	help   bool
+	input        string
+	output       string
+	help         bool
+	dontContinue bool
 }
 
 func (tc *toConvert) parseArgs(appName string, args []string) error {
@@ -65,6 +66,7 @@ func (tc *toConvert) parseArgs(appName string, args []string) error {
 	}
 	if tc.help {
 		fs.PrintDefaults()
+		tc.dontContinue = true
 		return nil
 	}
 	if tc.input == "" {
@@ -75,27 +77,29 @@ func (tc *toConvert) parseArgs(appName string, args []string) error {
 }
 
 func parseXMLFile(fName string) (vulnrep.Report, error) {
-	f, err := os.Open(fName)
+	// no security risk to parsing XML here.
+	f, err := os.Open(fName) //nolint:gosec
 	if err != nil {
 		return vulnrep.Report{}, err
 	}
-	defer f.Close()
+	defer safeClose(f)
 
 	return vulnrep.ParseXML(f)
 
 }
 func parseJSONFile(fName string) (vulnrep.Report, error) {
-	f, err := os.Open(fName)
+	// no security risk to parsing JSON here.
+	f, err := os.Open(fName) //nolint:gosec
 	if err != nil {
 		return vulnrep.Report{}, err
 	}
-	defer f.Close()
+	defer safeClose(f)
 
 	return vulnrep.ParseJSON(f)
 
 }
 
-func (tc *toConvert) doConversion() error {
+func (tc *toConvert) doConversion() (err error) {
 
 	var readFunc func(string) (vulnrep.Report, error)
 
@@ -123,7 +127,7 @@ func (tc *toConvert) doConversion() error {
 		if err != nil {
 			return fmt.Errorf("unable to open output file for conversion: %v", err)
 		}
-		defer outFile.Close()
+		defer safeWriteClose(&err, outFile)
 		out = outFile
 
 		switch filepath.Ext(tc.output) {
@@ -143,10 +147,27 @@ func (tc *toConvert) run(appName string, args []string) error {
 		return err
 	}
 
-	if tc.help {
+	if tc.dontContinue {
 		return nil
 	}
 	return tc.doConversion()
+}
+
+func safeClose(rc io.Closer) {
+	rc.Close() //nolint:errcheck,gosec
+}
+
+// safeWriteCloser makes sure that any errors that occur upon closing the file
+// are returned, if the function would otherwise return nil. This is meant to
+// be called as part of a deferred close operation.
+//
+// Note that the caller will need to use named returns in order to pass the
+// correct *error to this method.
+func safeWriteClose(err *error, wc io.Closer) {
+	newErr := wc.Close()
+	if *err == nil {
+		*err = newErr
+	}
 }
 
 func main() {

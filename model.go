@@ -113,8 +113,8 @@ func (r Report) ToCVRF(w io.Writer) error {
 	// data.
 	val := r.check()
 	if len(val.Errors) > 0 {
-		return errors.New(fmt.Sprintf("errors encountered before writing: %v",
-			strings.Join(val.Errors, ", ")))
+		return errors.Errorf("errors encountered before writing: %v",
+			strings.Join(val.Errors, ", "))
 	}
 
 	// make sure the file has the standard XML header.
@@ -128,14 +128,17 @@ func (r Report) ToCVRF(w io.Writer) error {
 	return xe.Encode(v12rep)
 }
 
+// ToCSAF writes a Report out to the JSON format. Note that the file is
+// checked for errors before it is written, and will not be written if there
+// are any compliance issues.
 func (r Report) ToCSAF(w io.Writer) error {
 
 	// check for errors before output, because we should only output correct
 	// data.
 	val := r.check()
 	if len(val.Errors) > 0 {
-		return errors.New(fmt.Sprintf("errors encountered before writing: %v",
-			strings.Join(val.Errors, ", ")))
+		return errors.Errorf("errors encountered before writing: %v",
+			strings.Join(val.Errors, ", "))
 	}
 
 	rj := toReportJSON(r)
@@ -239,7 +242,7 @@ func (rm *ReportMeta) Cleanup() {
 	}
 }
 
-// trackingXML captures the tracking data for a CVRF document
+// Tracking captures the tracking data for a CVRF document
 type Tracking struct {
 	ID                 string
 	Aliases            []string
@@ -251,6 +254,8 @@ type Tracking struct {
 	Generator          *Generator
 }
 
+// Generator captures the optional information about the tool that generated
+// the vulnerability report.
 type Generator struct {
 	Engine string
 	Date   time.Time
@@ -564,6 +569,8 @@ func (v *Vulnerability) check(val *Validator) {
 	}
 }
 
+// VulnID captures the identifier for a vulnerability in a vendor-specific
+// system name.
 type VulnID struct {
 	SystemName string
 	ID         string
@@ -597,6 +604,8 @@ type CWE struct {
 	Description string
 }
 
+// Status captures the different ways that a vulnerability applies to various
+// products.
 type Status struct {
 	Fixed            []*Product `json:"fixed,omitempty"`
 	FirstAffected    []*Product `json:"first_affected,omitempty"`

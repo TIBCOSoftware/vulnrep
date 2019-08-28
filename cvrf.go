@@ -396,7 +396,8 @@ func (ptx productTreeExp) asProductTree() (ProductTree, *loadCtx) {
 	return result, ctx
 }
 
-func asBranchesAndLeaves(prods map[ProductID]*Product, expBranches []branchExp) ([]Branch, []ProductLeaf) {
+func asBranchesAndLeaves(prods map[ProductID]*Product,
+	expBranches []branchExp) ([]Branch, []ProductLeaf) {
 	var resultLeaves []ProductLeaf
 	var resultBranches []Branch
 	for _, branch := range expBranches {
@@ -571,6 +572,7 @@ type vulnerabilityXML struct {
 	Acknowledgments []acknowledgmentExp `xml:"Acknowledgments>Acknowledgment,omitempty"`
 }
 
+//nolint: dupl
 func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
 
 	return vulnerabilityXML{
@@ -963,7 +965,8 @@ func (lc *loadCtx) asGroups(list []GroupID, loc string) []*Group {
 	return result
 }
 
-// ParseXMLFile parses an expected file...
+// ParseXML parses CVRF file (format 1.1 or 1.2). Note that all conformance issues
+// are reported as errors.
 func ParseXML(r io.Reader) (Report, error) {
 
 	var emptyReport Report
