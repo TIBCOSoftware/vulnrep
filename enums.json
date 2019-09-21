@@ -74,8 +74,8 @@
             ]
         },
         {
-            "TypeName": "AffectedStatusType",
-			"Comment": "AffectedStatusType only used in XML - captures the status of affected components.",
+            "TypeName": "affectedStatusType",
+			"Comment": "affectedStatusType only used in XML - captures the status of affected components.",
             "Values": [
 				{
 					"GoName": "AffectedStatusFirstAffected",

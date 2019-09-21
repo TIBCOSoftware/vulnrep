@@ -270,15 +270,15 @@ func (obj InvolvementStatusType) check(val *Validator) {
 }
 
 /*******************************************************************************
-* Generated type AffectedStatusType
+* Generated type affectedStatusType
 *******************************************************************************/
 
-// AffectedStatusType only used in XML - captures the status of affected components.
-type AffectedStatusType int
+// affectedStatusType only used in XML - captures the status of affected components.
+type affectedStatusType int
 
-// Values for AffectedStatusType
+// Values for affectedStatusType
 const (
-	AffectedStatusFirstAffected AffectedStatusType = iota
+	AffectedStatusFirstAffected affectedStatusType = iota
 	AffectedStatusFirstFixed
 	AffectedStatusFixed
 	AffectedStatusKnownAffected
@@ -286,10 +286,10 @@ const (
 	AffectedStatusLastAffected
 	AffectedStatusRecommended
 
-	maxAffectedStatusType
+	maxaffectedStatusType
 )
 
-var genAffectedStatusTypeToXMLStr = map[AffectedStatusType]string{
+var genaffectedStatusTypeToXMLStr = map[affectedStatusType]string{
 	AffectedStatusFirstAffected:    "First Affected",
 	AffectedStatusFirstFixed:       "First Fixed",
 	AffectedStatusFixed:            "Fixed",
@@ -299,7 +299,7 @@ var genAffectedStatusTypeToXMLStr = map[AffectedStatusType]string{
 	AffectedStatusRecommended:      "Recommended",
 }
 
-var genXMLStrToAffectedStatusType = map[string]AffectedStatusType{
+var genXMLStrToaffectedStatusType = map[string]affectedStatusType{
 	"First Affected":     AffectedStatusFirstAffected,
 	"First Fixed":        AffectedStatusFirstFixed,
 	"Fixed":              AffectedStatusFixed,
@@ -310,50 +310,50 @@ var genXMLStrToAffectedStatusType = map[string]AffectedStatusType{
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *AffectedStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *affectedStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
-		return fmt.Errorf("problem decoding AffectedStatusType: %v", err)
+		return fmt.Errorf("problem decoding affectedStatusType: %v", err)
 	}
 	var ok bool
-	if *obj, ok = genXMLStrToAffectedStatusType[s]; !ok {
-		return fmt.Errorf("unrecognized AffectedStatusType value %v", s)
+	if *obj, ok = genXMLStrToaffectedStatusType[s]; !ok {
+		return fmt.Errorf("unrecognized affectedStatusType value %v", s)
 	}
 	return nil
 }
 
-func (obj *AffectedStatusType) mapXMLValue(s string) error {
+func (obj *affectedStatusType) mapXMLValue(s string) error {
 	var ok bool
-	if *obj, ok = genXMLStrToAffectedStatusType[s]; !ok {
-		return fmt.Errorf("unrecognized AffectedStatusType value %v", s)
+	if *obj, ok = genXMLStrToaffectedStatusType[s]; !ok {
+		return fmt.Errorf("unrecognized affectedStatusType value %v", s)
 	}
 	return nil
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *AffectedStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *affectedStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj AffectedStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
-	s, ok := genAffectedStatusTypeToXMLStr[obj]
+func (obj affectedStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+	s, ok := genaffectedStatusTypeToXMLStr[obj]
 	if !ok {
-		return xml.Attr{}, fmt.Errorf("unrecognized AffectedStatusType value %v", obj)
+		return xml.Attr{}, fmt.Errorf("unrecognized affectedStatusType value %v", obj)
 	}
 	return xml.Attr{Name: name, Value: s}, nil
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj AffectedStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
-	s, ok := genAffectedStatusTypeToXMLStr[obj]
+func (obj affectedStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	s, ok := genaffectedStatusTypeToXMLStr[obj]
 	if !ok {
-		return fmt.Errorf("unrecognized AffectedStatusType %v", obj)
+		return fmt.Errorf("unrecognized affectedStatusType %v", obj)
 	}
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToAffectedStatusType = map[string]AffectedStatusType{
+var genJSONStrToaffectedStatusType = map[string]affectedStatusType{
 	"first_affected":     AffectedStatusFirstAffected,
 	"first_fixed":        AffectedStatusFirstFixed,
 	"fixed":              AffectedStatusFixed,
@@ -363,7 +363,7 @@ var genJSONStrToAffectedStatusType = map[string]AffectedStatusType{
 	"recommended":        AffectedStatusRecommended,
 }
 
-var genAffectedStatusTypeToJSONStr = map[AffectedStatusType]string{
+var genaffectedStatusTypeToJSONStr = map[affectedStatusType]string{
 	AffectedStatusFirstAffected:    "first_affected",
 	AffectedStatusFirstFixed:       "first_fixed",
 	AffectedStatusFixed:            "fixed",
@@ -374,26 +374,26 @@ var genAffectedStatusTypeToJSONStr = map[AffectedStatusType]string{
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *AffectedStatusType) UnmarshalJSON(data []byte) error {
+func (obj *affectedStatusType) UnmarshalJSON(data []byte) error {
 	var ok bool
-	if *obj, ok = genJSONStrToAffectedStatusType[noQuotes(data)]; !ok {
-		return fmt.Errorf("unrecognized AffectedStatusType value %v", string(data))
+	if *obj, ok = genJSONStrToaffectedStatusType[noQuotes(data)]; !ok {
+		return fmt.Errorf("unrecognized affectedStatusType value %v", string(data))
 	}
 	return nil
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj AffectedStatusType) MarshalJSON() ([]byte, error) {
-	s, ok := genAffectedStatusTypeToJSONStr[obj]
+func (obj affectedStatusType) MarshalJSON() ([]byte, error) {
+	s, ok := genaffectedStatusTypeToJSONStr[obj]
 	if !ok {
-		return nil, fmt.Errorf("unrecognized AffectedStatusType value %v", obj)
+		return nil, fmt.Errorf("unrecognized affectedStatusType value %v", obj)
 	}
 	return json.Marshal(s)
 }
 
-func (obj AffectedStatusType) check(val *Validator) {
-	if obj < 0 || obj >= maxAffectedStatusType {
-		val.err(fmt.Sprintf("unrecognized AffectedStatusType %v", obj))
+func (obj affectedStatusType) check(val *Validator) {
+	if obj < 0 || obj >= maxaffectedStatusType {
+		val.err(fmt.Sprintf("unrecognized affectedStatusType %v", obj))
 	}
 }
 

@@ -666,11 +666,11 @@ func (cwe *cweExp) asCWE() *CWE {
 
 // statusExp captures the list of all products with a given status.
 type statusXML struct {
-	Type       AffectedStatusType `xml:"Type,attr"`
+	Type       affectedStatusType `xml:"Type,attr"`
 	ProductIDs []ProductID        `xml:"ProductID"`
 }
 
-func oneStatus(result []statusXML, ast AffectedStatusType, prods []*Product) []statusXML {
+func oneStatus(result []statusXML, ast affectedStatusType, prods []*Product) []statusXML {
 	if len(prods) == 0 {
 		return result
 	}

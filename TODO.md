@@ -2,7 +2,7 @@
 
 ## Open Source
 
-- [x] LICENSE.md
+- [x] LICENSE
 - [x] license on source files
 - [x] README.md
 - [x] Correct years in copyright statements
@@ -25,7 +25,7 @@
 - [ ] Generated ordinals?
 - [ ] Change JSON product tree serialization to be a flat list of products with
   properties?
-- [ ] Non-pubic AffectedStatusType (only needed for XML serialization)
+- [x] Non-pubic AffectedStatusType (only needed for XML serialization)
 - [ ] Review struct names for possible improvement
 - [ ] Natural Go API for building a vulnerability representation
 - [ ] When there are errors after loading a JSON version, better information for
@@ -53,8 +53,8 @@
 
 ## Test Cases
 
-- [ ] validate JSON output against JSON schema to ensure that it only uses
-  expected properties in JSON
+- [ ] validate JSON output against modified JSON schema to ensure that it only
+  uses expected properties in JSON
 - [ ] test cases for every enumerated value
 - [ ] Full coverage with test cases
 - [ ] verify "omitempty" markup (XML mostly) by creating stripped down XML files

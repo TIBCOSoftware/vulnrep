@@ -1,19 +1,19 @@
 # vulnrep
 
-Implements APIs and tooling for capturing and converting CVRF and CSAF
+Implements APIs and tooling for parsing and exporting CVRF and CSAF
 vulnerability report representations.
 
 ## Overview
 
-At OASIS, the Technical Committee called the
+At OASIS, the
 [Common Security Advisory Framework](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf)
-defined a specification for sharing information about software vulnerabilities
-via XML. Version 1.2 of the Common Vulnerability Reporting Format (CVRF) can
-be found on that [page](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf#technical).
+Technical Committee specified a format sharing information about software
+vulnerabilities via XML. Version 1.2 of the Common Vulnerability Reporting
+Format (CVRF) can be found on that [page](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf#technical).
 
 In producing the subsequent version of the specification (implemented in JSON),
 this tool was created both to implement the specification, and eliminate
-issues with mapping to / from each format.
+issues with mapping to/from each format.
 
 ## Contributing
 
@@ -24,6 +24,12 @@ Pull requests must pass a minimal filter:
 * Appropriate test cases - if the pull request fixes a bug, then please provide
   a test case demonstrating the bug
 * Appropriate comments
+
+### Hints
+
+The enums.go file is generated with the help of the code in cmd/genenums.
+Please don't edit this file directly, but instead edit the enums.json file,
+then run "go generate".
 
 ## License
 

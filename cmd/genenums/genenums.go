@@ -1,3 +1,10 @@
+// SPDX-License-Identifier: BSD-3-Clause
+//
+// Copyright 2019, TIBCO Software Inc. This file is subject to the license
+// terms contained in the license file that is distributed with this file.
+
+// Purpose built command line tool to generate the desired enumerations
+// necessary for CVRF and JSON format documents.
 package main
 
 import (
