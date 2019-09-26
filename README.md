@@ -1,19 +1,21 @@
 # vulnrep
 
-Implements APIs and tooling for parsing and exporting CVRF and CSAF
-vulnerability report representations.
+Vulnerability Reporting Library implements Go APIs and command line tooling for
+parsing and exporting CVRF and CSAF vulnerability report representations.
 
 ## Overview
 
 At OASIS, the
 [Common Security Advisory Framework](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf)
-Technical Committee specified a format sharing information about software
+Technical Committee specified a format for sharing information about software
 vulnerabilities via XML. Version 1.2 of the Common Vulnerability Reporting
-Format (CVRF) can be found on that [page](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf#technical).
+Format (CVRF) can be found on the technical committee's home
+[page](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf#technical).
 
-In producing the subsequent version of the specification (implemented in JSON),
-this tool was created both to implement the specification, and eliminate
-issues with mapping to/from each format.
+The Vulnerability Reporting Library exists to implement and validate the
+subsequent version of the specification based on JSON serialization. This
+implementation aims to either identify or eliminate issues with mapping to/from
+the existing XML format and the new JSON representation.
 
 ## Contributing
 
