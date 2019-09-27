@@ -5,17 +5,19 @@ parsing and exporting CVRF and CSAF vulnerability report representations.
 
 ## Overview
 
-At OASIS, the
-[Common Security Advisory Framework](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf)
-Technical Committee specified a format for sharing information about software
-vulnerabilities via XML. Version 1.2 of the Common Vulnerability Reporting
-Format (CVRF) can be found on the technical committee's home
+The OASIS [Common Security Advisory Framework](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf)
+Technical Committee specified a XML-based format for sharing information about software
+vulnerabilities. OASIS published version 1.2 of that specification - the Common
+Vulnerability Reporting Format (CVRF) - on the committee's home
 [page](https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=csaf#technical).
+That committee also works on a newer JSON format.
 
-The Vulnerability Reporting Library exists to implement and validate the
-subsequent version of the specification based on JSON serialization. This
-implementation aims to either identify or eliminate issues with mapping to/from
-the existing XML format and the new JSON representation.
+This project - the Vulnerability Reporting Library - aims to:
+
+* provide GO APIs to work with vulnerability information
+* validate the feasibility and correctness of the new JSON-focused specification
+* identify and eliminate issues with mapping to/from the existing XML format
+  and the new JSON representation
 
 ## Contributing
 
