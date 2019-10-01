@@ -53,7 +53,7 @@
 
 ## Test Cases
 
-- [ ] validate JSON output against modified JSON schema to ensure that it only
+- [x] validate JSON output against modified JSON schema to ensure that it only
   uses expected properties in JSON
 - [ ] test cases for every enumerated value
 - [ ] Full coverage with test cases

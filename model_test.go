@@ -9,16 +9,17 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/xeipuuv/gojsonschema"
 )
 
+// TestXMLRoundTrip verifies that the library can load a CVRF document, and
+// serialize it back out to XML that is identical to the original input document.
 func TestXMLRoundTrip(t *testing.T) {
 
 	raw, err := ioutil.ReadFile("test/cvrf-1.2-test-use-everything.xml")
@@ -54,6 +55,17 @@ func TestXMLRoundTrip(t *testing.T) {
 	err = r.ToCVRF(&out)
 	assert.NoError(t, err)
 	orig := string(raw)
+	// Note: This equivalence test relies heavily on a carefully constructed
+	// input document. XML documents can have all sorts of variation, and still
+	// be considered semantically equivalent. Differences could include:
+	//  * comments
+	//  * attribute order
+	//  * spaces and indentation
+	//  * namespace declarations
+	//
+	// The input document has been created to match the details of Go's XML
+	// marshaling. If that marshaling logic changes, this test could start
+	// failing.
 	assert.EqualValues(t, orig, out.String())
 
 	var jsonOut bytes.Buffer
@@ -61,64 +73,68 @@ func TestXMLRoundTrip(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func cacheFile(url string, f string) error {
-
-	_, err := os.Stat(f)
-	if err == nil {
-		return nil
+// fileToURLStr exists to generate a URL from a file, for the purpose of passing
+// a URL string to the gojsonschema API.
+func fileToURLStr(f string) string {
+	url := url.URL{
+		Scheme: "file",
+		Path:   filepath.ToSlash(f),
 	}
-	if !os.IsNotExist(err) {
-		return err
-	}
-	fn := filepath.Base(f)
-	parentDir := filepath.Dir(f)
-	err = os.MkdirAll(parentDir, 0777)
-	if err != nil {
-		return errors.Wrapf(err, "unable to open parent dir for caching %v", fn)
-	}
-	req, err := http.Get(url) //nolint: gosec
-	if err != nil {
-		return errors.Wrapf(err, "unable to fetch file %v", fn)
-	}
-	defer req.Body.Close()
-	raw, err := ioutil.ReadAll(req.Body)
-	if err != nil {
-		return fmt.Errorf("unable to read file to save as %v: %v", fn, err)
-	}
-	return ioutil.WriteFile(f, raw, 0664)
+	return url.String()
 }
 
-const oasisGitRepoRaw = "https://raw.githubusercontent.com/oasis-tcs/csaf/master/"
+// failIfNotPrepped will fail tests if the necessary files have not been downloaded
+// and modified appropriately. (See cmd/prep/prep.go)
+//
+// This solves a bunch of problems:
+// * schemas are not baked into the source for this library.
+// * developers can replace the downloaded files, to improve the quality of the
+//   schemas
+// * "prep" operation happens only once, so that unit tests can run quickly.
+//
+// This is likely not the most elegant solution to this problem.
+func failIfNotPrepped(t *testing.T, necessaryFiles ...string) {
 
+	t.Helper()
+	for _, f := range necessaryFiles {
+		_, err := os.Stat(f)
+		if os.IsNotExist(err) {
+			t.Fatalf("unable to find file %v - perform 'go run cmd/prep/prep.go' "+
+				"to download and modify appropriate files", f)
+		}
+	}
+}
+
+// TestCompliantOutput verifies that the JSON output of a vulnerability report
+// actually conforms to the JSON schema specification.
 func TestCompliantOutput(t *testing.T) {
 
-	_, err := exec.LookPath("jsonschema")
-	if err != nil {
-		fmt.Printf("Didn't find jsonschema tool, skipping test")
-		t.SkipNow()
-	}
-
-	jsonSchema := filepath.Join(os.TempDir(), "vulrepschemas", "csaf_schema.json")
-	err = cacheFile(oasisGitRepoRaw+"sandbox/csaf_2.0/json_schema/csaf_json_schema.json",
-		jsonSchema)
-
-	// TODO - validate output.
+	failIfNotPrepped(t, "prepared/mod_csaf_schema.json")
+	modifiedJsonSchema, err := filepath.Abs("prepared/mod_csaf_schema.json")
 	assert.NoError(t, err)
 
-}
+	raw, err := ioutil.ReadFile("test/cvrf-1.2-test-use-everything.xml")
+	assert.NoError(t, err)
+	r, err := ParseXML(bytes.NewBuffer(raw))
+	assert.NoError(t, err)
 
-// func TestXmlToModel(t *testing.T) {
-// 	br := branchXML{
-// 		BranchType: BranchVendor,
-// 		Name: "Example.com",
-// 		Branches: []branchXML{
-// 			{
-// 				BranchType: BranchProductFamily,
-// 				Name: "ProdFamily",
-// 			}
-// 		}
-// 	}
-// }
+	jsonOut, err := ioutil.TempFile("", "vulnrep_json_test_*.json")
+	assert.NoError(t, err)
+	outPath := jsonOut.Name()
+	assert.NoError(t, r.ToCSAF(jsonOut))
+	assert.NoError(t, jsonOut.Close())
+
+	schemaLoader := gojsonschema.NewReferenceLoader(fileToURLStr(modifiedJsonSchema))
+	documentLoader := gojsonschema.NewReferenceLoader(fileToURLStr(outPath))
+	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
+	assert.NoError(t, err)
+	assert.True(t, result.Valid())
+	if !result.Valid() {
+		for _, oneErr := range result.Errors() {
+			fmt.Println(oneErr.String())
+		}
+	}
+}
 
 func TestChecks(t *testing.T) {
 

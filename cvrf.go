@@ -131,7 +131,7 @@ type trackingExp struct {
 	Aliases            []string      `xml:"Identification>Alias,omitempty" json:"aliases,omitempty"`
 	Status             DocStatus     `xml:"Status" json:"status"`
 	Version            RevisionStr   `xml:"Version" json:"version"`
-	Revisions          []revisionExp `xml:"RevisionHistory>Revision" json:"revisions"`
+	Revisions          []revisionExp `xml:"RevisionHistory>Revision" json:"revision_history"`
 	InitialReleaseDate time.Time     `xml:"InitialReleaseDate" json:"initial_release_date"`
 	CurrentReleaseDate time.Time     `xml:"CurrentReleaseDate" json:"current_release_date"`
 	Generator          *generatorExp `xml:"Generator,omitempty" json:"generator,omitempty"`
