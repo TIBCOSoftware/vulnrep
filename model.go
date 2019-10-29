@@ -698,5 +698,6 @@ func (r *Remediation) check(val *Validator) {
 	for _, s := range r.Entitlement {
 		val.nonEmptyStr(s, "entitlement")
 	}
-	val.urlVal(r.URL, "remediation")
+	// Note that the URL for the Remediation is allowed to be empty - it just
+	// won't be serialized.
 }

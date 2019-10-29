@@ -84,7 +84,7 @@ type reportMetaJSON struct {
 	Publisher         publisherExp          `json:"publisher"`
 	Tracking          trackingExp           `json:"tracking"`
 	Notes             []noteExp             `json:"notes"`
-	Distribution      string                `json:"distribution"`
+	Distribution      string                `json:"distribution,omitempty"`
 	AggregateSeverity *aggregateSeverityExp `json:"aggregate_severity"`
 	References        []referenceExp        `json:"references"`
 	Acknowledgments   []acknowledgmentExp   `json:"acknowledgments"`
@@ -107,13 +107,13 @@ func toReportMetaJSON(meta ReportMeta) reportMetaJSON {
 
 type vulnerabilityJSON struct {
 	Ordinal         int                 `json:"ordinal"`
-	Title           string              `json:"title"`
+	Title           string              `json:"title,omitempty"`
 	ID              *vulnIDExp          `json:"id,omitempty"`
-	Notes           []noteExp           `json:"notes"`
-	DiscoveryDate   time.Time           `json:"discovery_date"`
-	ReleaseDate     time.Time           `json:"release_date"`
+	Notes           []noteExp           `json:"notes,omitempty"`
+	DiscoveryDate   *time.Time          `json:"discovery_date,omitempty"`
+	ReleaseDate     *time.Time          `json:"release_date,omitempty"`
 	Involvements    []Involvement       `json:"involvements,omitempty"`
-	CVE             string              `json:"cve"`
+	CVE             string              `json:"cve,omitempty"`
 	CWE             *cweExp             `json:"cwe,omitempty"`
 	ProductStatus   productStatusJSON   `json:"product_status"`
 	Threats         []threatExp         `json:"threats"`
@@ -130,8 +130,8 @@ func (vj vulnerabilityJSON) asVulnerability(ctx *loadCtx) Vulnerability {
 		Title:           vj.Title,
 		ID:              vj.ID.asVulnID(),
 		Notes:           asNotes(vj.Notes),
-		DiscoveryDate:   vj.DiscoveryDate,
-		ReleaseDate:     vj.ReleaseDate,
+		DiscoveryDate:   timePtrToTime(vj.DiscoveryDate),
+		ReleaseDate:     timePtrToTime(vj.ReleaseDate),
 		Involvements:    vj.Involvements,
 		CVE:             vj.CVE,
 		CWE:             vj.CWE.asCWE(),
@@ -150,8 +150,8 @@ func toVulnerabilityJSON(v Vulnerability) vulnerabilityJSON {
 		Title:           v.Title,
 		ID:              toVulnIDExp(v.ID),
 		Notes:           toNotesXML(v.Notes),
-		DiscoveryDate:   v.DiscoveryDate,
-		ReleaseDate:     v.ReleaseDate,
+		DiscoveryDate:   timeToTimePtr(v.DiscoveryDate),
+		ReleaseDate:     timeToTimePtr(v.ReleaseDate),
 		Involvements:    v.Involvements,
 		CVE:             v.CVE,
 		CWE:             toCWEExp(v.CWE),

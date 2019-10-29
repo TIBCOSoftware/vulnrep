@@ -121,8 +121,23 @@ func toReportXML(r Report) reportV12 {
 type publisherExp struct {
 	Type             PublisherType `xml:"Type,attr" json:"type"`
 	VendorID         string        `xml:"VendorID,attr,omitempty" json:"vendor_id,omitempty"`
-	ContactDetails   string        `xml:"ContactDetails" json:"contact_details"`
-	IssuingAuthority string        `xml:"IssuingAuthority" json:"issuing_authority"`
+	ContactDetails   string        `xml:"ContactDetails,omitempty" json:"contact_details,omitempty"`
+	IssuingAuthority string        `xml:"IssuingAuthority,omitempty" json:"issuing_authority,omitempty"`
+}
+
+func timePtrToTime(t *time.Time) time.Time {
+	var result time.Time
+	if t != nil {
+		result = *t
+	}
+	return result
+}
+
+func timeToTimePtr(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
 }
 
 // trackingExp used to import / export tracking data about a vulnerability report.
@@ -132,8 +147,8 @@ type trackingExp struct {
 	Status             DocStatus     `xml:"Status" json:"status"`
 	Version            RevisionStr   `xml:"Version" json:"version"`
 	Revisions          []revisionExp `xml:"RevisionHistory>Revision" json:"revision_history"`
-	InitialReleaseDate time.Time     `xml:"InitialReleaseDate" json:"initial_release_date"`
-	CurrentReleaseDate time.Time     `xml:"CurrentReleaseDate" json:"current_release_date"`
+	InitialReleaseDate *time.Time    `xml:"InitialReleaseDate,omitempty" json:"initial_release_date,omitempty"`
+	CurrentReleaseDate *time.Time    `xml:"CurrentReleaseDate,omitempty" json:"current_release_date,omitempty"`
 	Generator          *generatorExp `xml:"Generator,omitempty" json:"generator,omitempty"`
 }
 
@@ -145,8 +160,8 @@ func toTrackingExp(t Tracking) trackingExp {
 		Status:             t.Status,
 		Version:            t.Version,
 		Revisions:          toRevisionExps(t.Revisions),
-		InitialReleaseDate: t.InitialReleaseDate,
-		CurrentReleaseDate: t.CurrentReleaseDate,
+		InitialReleaseDate: timeToTimePtr(t.InitialReleaseDate),
+		CurrentReleaseDate: timeToTimePtr(t.CurrentReleaseDate),
 		Generator:          toGeneratorExp(t.Generator),
 	}
 }
@@ -162,31 +177,33 @@ func (t trackingExp) asTracking() Tracking {
 		Status:             t.Status,
 		Version:            t.Version,
 		Revisions:          convRevs,
-		InitialReleaseDate: t.InitialReleaseDate,
-		CurrentReleaseDate: t.CurrentReleaseDate,
+		InitialReleaseDate: timePtrToTime(t.InitialReleaseDate),
+		CurrentReleaseDate: timePtrToTime(t.CurrentReleaseDate),
 		Generator:          t.Generator.asGenerator(),
 	}
 }
 
 type generatorExp struct {
-	Engine string    `xml:"Engine,omitempty" json:"engine,omitempty"`
-	Date   time.Time `xml:"Date,omitempty" json:"date"`
+	Engine string     `xml:"Engine,omitempty" json:"engine,omitempty"`
+	Date   *time.Time `xml:"Date,omitempty" json:"date,omitempty"`
 }
 
 func toGeneratorExp(g *Generator) *generatorExp {
 	if g == nil {
 		return nil
 	}
-	result := generatorExp(*g)
-	return &result
+	return &generatorExp{
+		Engine: g.Engine,
+		Date:   timeToTimePtr(g.Date)}
 }
 
 func (g *generatorExp) asGenerator() *Generator {
 	if g == nil {
 		return nil
 	}
-	result := Generator(*g)
-	return &result
+	return &Generator{
+		Engine: g.Engine,
+		Date:   timePtrToTime(g.Date)}
 }
 
 // aggregateSeverityXML captures the aggregate severity information for CVRF document
@@ -276,10 +293,10 @@ func toReferenceExps(refs []Reference) []referenceExp {
 
 // acknowledgmentXML captures acknowledgments for the XML format.
 type acknowledgmentExp struct {
-	Names         []string `xml:"Name" json:"names"`
-	Organizations []string `xml:"Organization" json:"organizations"`
-	Description   string   `xml:"Description,omitempty" json:"description"`
-	URLs          []string `xml:"URL" json:"urls"`
+	Names         []string `xml:"Name" json:"names,omitempty"`
+	Organizations []string `xml:"Organization" json:"organizations,omitempty"`
+	Description   string   `xml:"Description,omitempty" json:"description,omitempty"`
+	URLs          []string `xml:"URL" json:"urls,omitempty"`
 }
 
 func toAcknowledgmentExps(acks []Acknowledgment) []acknowledgmentExp {
@@ -529,7 +546,7 @@ func (rx relationshipExp) asRelationship(ctx *loadCtx) Relationship {
 // groupXML captures the XML representation of a product grouping.
 type groupExp struct {
 	GroupID     GroupID     `xml:"GroupID,attr" json:"group_id"`
-	Description string      `xml:"Description,omitempty" json:"description"`
+	Description string      `xml:"Description,omitempty" json:"description,omitempty"`
 	ProductIDs  []ProductID `xml:"ProductID" json:"product_ids"` // at least two required
 }
 
@@ -553,18 +570,25 @@ func (gx groupExp) asGroup(lookup map[ProductID]*Product) *Group {
 		Products:    prodList}
 }
 
+// productStatusXML exists so that serialization of an empty list of status
+// items results in no element being emitted, rather than having an empty
+// <ProductStatuses/> element, which does not conform to the XML Schema.
+type productStatusXML struct {
+	Statuses []statusXML `xml:"Status"`
+}
+
 // vulnerabilityXML captures the XML information of a vulnerability
 type vulnerabilityXML struct {
 	Ordinal         int                 `xml:"Ordinal,attr"` // positive integer
 	Title           string              `xml:"Title,omitempty"`
 	ID              *vulnIDExp          `xml:"ID,omitempty"`
 	Notes           []noteExp           `xml:"Notes>Note"`
-	DiscoveryDate   time.Time           `xml:"DiscoveryDate,omitempty"`
-	ReleaseDate     time.Time           `xml:"ReleaseDate,omitempty"`
+	DiscoveryDate   *time.Time          `xml:"DiscoveryDate,omitempty"`
+	ReleaseDate     *time.Time          `xml:"ReleaseDate,omitempty"`
 	Involvements    []Involvement       `xml:"Involvements>Involvement,omitempty"`
 	CVE             string              `xml:"CVE,omitempty"`
 	CWE             *cweExp             `xml:"CWE,omitempty"`
-	Statuses        []statusXML         `xml:"ProductStatuses>Status,omitempty"`
+	Statuses        *productStatusXML   `xml:"ProductStatuses,omitempty"`
 	Threats         []threatExp         `xml:"Threats>Threat,omitempty"`
 	CVSSScoreSets   *cvssScoreSetsXML   `xml:"CVSSScoreSets,omitempty"`
 	Remediations    []remediationExp    `xml:"Remediations>Remediation"`
@@ -580,8 +604,8 @@ func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
 		Title:           v.Title,
 		ID:              toVulnIDExp(v.ID),
 		Notes:           toNotesXML(v.Notes),
-		DiscoveryDate:   v.DiscoveryDate,
-		ReleaseDate:     v.ReleaseDate,
+		DiscoveryDate:   timeToTimePtr(v.DiscoveryDate),
+		ReleaseDate:     timeToTimePtr(v.ReleaseDate),
 		Involvements:    v.Involvements,
 		CVE:             v.CVE,
 		CWE:             toCWEExp(v.CWE),
@@ -605,8 +629,8 @@ func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
 		Title:           vx.Title,
 		ID:              vx.ID.asVulnID(),
 		Notes:           asNotes(vx.Notes),
-		DiscoveryDate:   vx.DiscoveryDate,
-		ReleaseDate:     vx.ReleaseDate,
+		DiscoveryDate:   timePtrToTime(vx.DiscoveryDate),
+		ReleaseDate:     timePtrToTime(vx.ReleaseDate),
 		Involvements:    vx.Involvements,
 		CVE:             vx.CVE,
 		CWE:             vx.CWE.asCWE(),
@@ -677,7 +701,7 @@ func oneStatus(result []statusXML, ast affectedStatusType, prods []*Product) []s
 	return append(result, statusXML{Type: ast, ProductIDs: toProductIDs(prods)})
 }
 
-func toStatusXML(status Status) []statusXML {
+func toStatusXML(status Status) *productStatusXML {
 
 	result := oneStatus(nil, AffectedStatusFirstAffected, status.FirstAffected)
 	result = oneStatus(result, AffectedStatusFirstFixed, status.FirstFixed)
@@ -687,13 +711,19 @@ func toStatusXML(status Status) []statusXML {
 	result = oneStatus(result, AffectedStatusLastAffected, status.LastAffected)
 	result = oneStatus(result, AffectedStatusRecommended, status.Recommended)
 
-	return result
+	if len(result) == 0 {
+		return nil
+	}
+	return &productStatusXML{Statuses: result}
 }
 
-func asStatus(ctx *loadCtx, statuses []statusXML) Status {
+func asStatus(ctx *loadCtx, statuses *productStatusXML) Status {
 
 	var result Status
-	for _, st := range statuses {
+	if statuses == nil {
+		return result
+	}
+	for _, st := range statuses.Statuses {
 		var list *[]*Product
 		var msg string
 		switch st.Type {
@@ -721,16 +751,16 @@ func asStatus(ctx *loadCtx, statuses []statusXML) Status {
 type threatExp struct {
 	Type        ThreatType  `xml:"Type,attr" json:"type"`
 	Description string      `xml:"Description" json:"description"`
-	Date        time.Time   `xml:"Date,attr,omitempty" json:"date"`
-	ProductIDs  []ProductID `xml:"ProductID,omitempty" json:"products"`
-	GroupIDs    []GroupID   `xml:"GroupID,omitempty" json:"groups"`
+	Date        *time.Time  `xml:"Date,attr,omitempty" json:"date,omitempty"`
+	ProductIDs  []ProductID `xml:"ProductID,omitempty" json:"products,omitempty"`
+	GroupIDs    []GroupID   `xml:"GroupID,omitempty" json:"groups,omitempty"`
 }
 
 func toThreatExp(th Threat) threatExp {
 	return threatExp{
 		Type:        th.Type,
 		Description: th.Description,
-		Date:        th.Date,
+		Date:        timeToTimePtr(th.Date),
 		ProductIDs:  toProductIDs(th.Products),
 		GroupIDs:    toGroupIDs(th.Groups)}
 }
@@ -755,7 +785,7 @@ func (tx threatExp) asThreat(ctx *loadCtx) Threat {
 	return Threat{
 		Type:        tx.Type,
 		Description: tx.Description,
-		Date:        tx.Date,
+		Date:        timePtrToTime(tx.Date),
 		Products:    ctx.asProducts(tx.ProductIDs, "threat"),
 		Groups:      ctx.asGroups(tx.GroupIDs, "threats"),
 	}
@@ -818,10 +848,10 @@ func (ssx scoreSetV2XML) asScoreSet(ctx *loadCtx) ScoreSet {
 // scoreSetV3XML captures the XML representation of the CVSS v3 scoring.
 type scoreSetV3Exp struct {
 	BaseScore          string      `xml:"BaseScoreV3" json:"base_score"`
-	TemporalScore      string      `xml:"TemporalScoreV3,omitempty" json:"temporal_score"`
-	EnvironmentalScore string      `xml:"EnvironmentalScoreV3,omitempty" json:"environmental_score"`
-	Vector             string      `xml:"VectorV3" json:"vector"`
-	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids"`
+	TemporalScore      string      `xml:"TemporalScoreV3,omitempty" json:"temporal_score,omitempty"`
+	EnvironmentalScore string      `xml:"EnvironmentalScoreV3,omitempty" json:"environmental_score,omitempty"`
+	Vector             string      `xml:"VectorV3,omitempty" json:"vector,omitempty"`
+	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
 }
 
 func toScoreSetV3Exp(ss ScoreSet) scoreSetV3Exp {
@@ -862,12 +892,12 @@ func asScoreSets(ctx *loadCtx, scores []scoreSetV3Exp) []ScoreSet {
 // remediationExp captures the XML representation for remediations of a vulnerability
 type remediationExp struct {
 	Type        RemedyType  `xml:"Type,attr" json:"type"`
-	Date        time.Time   `xml:"Date,attr" json:"date"`
+	Date        *time.Time  `xml:"Date,attr,omitempty" json:"date,omitempty"`
 	Description string      `xml:"Description" json:"description"`
-	Entitlement []string    `xml:"Entitlement,omitempty" json:"entitlement"`
-	URL         string      `xml:"URL,omitempty" json:"url"`
-	Products    []ProductID `xml:"ProductID,omitempty" json:"products"`
-	Groups      []GroupID   `xml:"GroupID,omitempty" json:"groups"`
+	Entitlement []string    `xml:"Entitlement,omitempty" json:"entitlement,omitempty"`
+	URL         string      `xml:"URL,omitempty" json:"url,omitempty"`
+	Products    []ProductID `xml:"ProductID,omitempty" json:"products,omitempty"`
+	Groups      []GroupID   `xml:"GroupID,omitempty" json:"groups,omitempty"`
 }
 
 func asRemediations(ctx *loadCtx, remediations []remediationExp) []Remediation {
@@ -882,7 +912,7 @@ func (rem remediationExp) asRemediation(ctx *loadCtx) Remediation {
 
 	return Remediation{
 		Type:        rem.Type,
-		Date:        rem.Date,
+		Date:        timePtrToTime(rem.Date),
 		Description: rem.Description,
 		Entitlement: rem.Entitlement,
 		URL:         rem.URL,
@@ -894,7 +924,7 @@ func (rem remediationExp) asRemediation(ctx *loadCtx) Remediation {
 func toRemediationExp(rem Remediation) remediationExp {
 	return remediationExp{
 		Type:        rem.Type,
-		Date:        rem.Date,
+		Date:        timeToTimePtr(rem.Date),
 		Description: rem.Description,
 		Entitlement: rem.Entitlement,
 		URL:         rem.URL,

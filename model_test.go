@@ -73,6 +73,24 @@ func TestXMLRoundTrip(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestPartialXMLRoundTrip(t *testing.T) {
+	raw, err := ioutil.ReadFile("test/cvrf-1.2-test-remove-once.xml")
+	assert.NoError(t, err)
+	r, err := ParseXML(bytes.NewBuffer(raw))
+	assert.NoError(t, err)
+
+	var out bytes.Buffer
+	err = r.ToCVRF(&out)
+	assert.NoError(t, err)
+	orig := string(raw)
+	// Note: See TestXMLRoundTrip for the merits of this test.
+	assert.EqualValues(t, orig, out.String())
+
+	var jsonOut bytes.Buffer
+	err = r.ToCSAF(&jsonOut)
+	assert.NoError(t, err)
+}
+
 // fileToURLStr exists to generate a URL from a file, for the purpose of passing
 // a URL string to the gojsonschema API.
 func fileToURLStr(f string) string {

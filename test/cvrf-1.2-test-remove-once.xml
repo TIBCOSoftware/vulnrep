@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cvrfdoc xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/cvrf">
+    <DocumentTitle>First level of optional CVRF features removed - note carefully constructed to match Go XML serialization</DocumentTitle>
+    <DocumentType>FooType</DocumentType>
+    <DocumentPublisher Type="Vendor"></DocumentPublisher>
+    <DocumentTracking>
+        <Identification>
+            <ID>2019-Foobar</ID>
+        </Identification>
+        <Status>Final</Status>
+        <Version>1.2</Version>
+        <RevisionHistory>
+            <Revision>
+                <Number>2</Number>
+                <Date>2019-07-25T09:15:10-07:00</Date>
+                <Description>First revision</Description>
+            </Revision>
+            <Revision>
+                <Number>3</Number>
+                <Date>2019-07-26T09:15:20-07:00</Date>
+                <Description>Second revision</Description>
+            </Revision>
+        </RevisionHistory>
+        <InitialReleaseDate>2019-07-25T09:15:10-07:00</InitialReleaseDate>
+        <CurrentReleaseDate>2019-07-26T09:15:20-07:00</CurrentReleaseDate>
+        <Generator></Generator>
+    </DocumentTracking>
+    <DocumentNotes>
+        <Note Type="Description" Ordinal="1">This is the first document note</Note>
+        <Note Type="General" Ordinal="2">Another note!</Note>
+    </DocumentNotes>
+    <AggregateSeverity>SuperBad</AggregateSeverity>
+    <DocumentReferences>
+        <Reference>
+            <URL>https://www.example.com/Reference1</URL>
+            <Description>Document Reference 1 description</Description>
+        </Reference>
+        <Reference>
+            <URL>https://www.example.com/Reference2</URL>
+            <Description>Document Reference 2 description</Description>
+        </Reference>
+    </DocumentReferences>
+    <Acknowledgments>
+        <Acknowledgment></Acknowledgment>
+    </Acknowledgments>
+    <ProductTree xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/prod">
+        <Branch Type="Vendor" Name="example.com">
+            <Branch Type="Product Family" Name="Games">
+                <FullProductName ProductID="ProductB1">Branch B Games</FullProductName>
+            </Branch>
+            <Branch Type="Product Family" Name="Utilities">
+                <FullProductName ProductID="ProductB2">Branch B Utilities</FullProductName>
+            </Branch>
+        </Branch>
+        <Branch Type="Vendor" Name="example2.com">
+            <FullProductName ProductID="ProductC1">Branch C One</FullProductName>
+        </Branch>
+        <FullProductName ProductID="ProductA1">Product A-1</FullProductName>
+        <FullProductName ProductID="ProductA2">Product A-2</FullProductName>
+        <Relationship ProductReference="ProductA2" RelationType="Installed On" RelatesToProductReference="ProductA1">
+            <FullProductName ProductID="ProductA1+A2">Product A-1+A-2</FullProductName>
+        </Relationship>
+        <ProductGroups>
+            <Group GroupID="Group1">
+                <ProductID>ProductB1</ProductID>
+                <ProductID>ProductB2</ProductID>
+            </Group>
+        </ProductGroups>
+    </ProductTree>
+    <Vulnerability xmlns="http://docs.oasis-open.org/csaf/ns/csaf-cvrf/v1.2/vuln" Ordinal="1">
+        <Notes></Notes>
+        <Involvements>
+            <Involvement Party="Discoverer" Status="Open"></Involvement>
+        </Involvements>
+        <Threats>
+            <Threat Type="Impact">
+                <Description>Everyone is hosed</Description>
+            </Threat>
+        </Threats>
+        <CVSSScoreSets>
+            <ScoreSetV2>
+                <BaseScoreV2>6.6</BaseScoreV2>
+            </ScoreSetV2>
+            <ScoreSetV3>
+                <BaseScoreV3>6.6</BaseScoreV3>
+            </ScoreSetV3>
+        </CVSSScoreSets>
+        <Remediations>
+            <Remediation Type="Vendor Fix">
+                <Description>You thought we would fix it?!</Description>
+            </Remediation>
+        </Remediations>
+        <References>
+            <Reference Type="Self">
+                <URL>https://www.example.com/security/advisories</URL>
+                <Description>May it delivery you peace.</Description>
+            </Reference>
+        </References>
+        <Acknowledgments>
+            <Acknowledgment></Acknowledgment>
+        </Acknowledgments>
+    </Vulnerability>
+</cvrfdoc>

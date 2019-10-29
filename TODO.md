@@ -57,7 +57,7 @@
   uses expected properties in JSON
 - [ ] test cases for every enumerated value
 - [ ] Full coverage with test cases
-- [ ] verify "omitempty" markup (XML mostly) by creating stripped down XML files
+- [x] verify "omitempty" markup (XML mostly) by creating stripped down XML files
 - [ ] validate that XML output validates against the XML Schema.
 - [ ] test case for complete round trip - save XML to JSON, then back again.
 
