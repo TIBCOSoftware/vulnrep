@@ -14,7 +14,7 @@ import (
 
 func TestEnumSerialization(t *testing.T) {
 
-	val := PubTypeVendor
+	val := expPublisherType(PubTypeVendor)
 	raw, err := json.Marshal(val)
 	assert.NoError(t, err)
 	assert.EqualValues(t, `"vendor"`, string(raw))

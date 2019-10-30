@@ -78,37 +78,37 @@
 			"Comment": "affectedStatusType only used in XML - captures the status of affected components.",
             "Values": [
 				{
-					"GoName": "AffectedStatusFirstAffected",
+					"GoName": "affectedStatusFirstAffected",
 					"XML": "First Affected",
 					"JSON": "first_affected"
 				},
 				{
-					"GoName": "AffectedStatusFirstFixed",
+					"GoName": "affectedStatusFirstFixed",
 					"XML": "First Fixed",
 					"JSON": "first_fixed"
 				},
 				{
-					"GoName": "AffectedStatusFixed",
+					"GoName": "affectedStatusFixed",
 					"XML": "Fixed",
 					"JSON": "fixed"
 				},
 				{
-					"GoName": "AffectedStatusKnownAffected",
+					"GoName": "affectedStatusKnownAffected",
 					"XML": "Known Affected",
 					"JSON": "known_affected"
 				},
 				{
-					"GoName": "AffectedStatusKnownNotAffected",
+					"GoName": "affectedStatusKnownNotAffected",
 					"XML": "Known Not Affected",
 					"JSON": "known_not_affected"
 				},
 				{
-					"GoName": "AffectedStatusLastAffected",
+					"GoName": "affectedStatusLastAffected",
 					"XML": "Last Affected",
 					"JSON": "last_affected"
 				},
 				{
-					"GoName": "AffectedStatusRecommended",
+					"GoName": "affectedStatusRecommended",
 					"XML": "Recommended",
 					"JSON": "recommended"
 				}
@@ -116,7 +116,7 @@
         },
         {
 			"TypeName": "RemedyType",
-			"Comment": "RemedyType enumerates the types of remedies.",
+			"Comment": "RemedyType enumerates the types of remedies for a vulnerability.",
             "Values": [
 				{
 					"GoName": "RemedyWorkaround",
@@ -168,7 +168,7 @@
         },
         {
 			"TypeName": "ReferenceType",
-			"Comment": "ReferenceType enumerates whether a references in self or external.",
+			"Comment": "ReferenceType enumerates whether a reference is self or external.",
             "Values": [
 				{
 					"GoName": "ReferenceExternal",
@@ -184,7 +184,7 @@
         },
         {
 			"TypeName": "NoteType",
-			"Comment": "NoteType enuemrates the different types of Notes.",
+			"Comment": "NoteType enumerates the different types of Notes.",
             "Values": [
 				{
 					"GoName": "NoteDescription",

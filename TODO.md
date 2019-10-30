@@ -28,10 +28,10 @@
 - [x] Non-pubic AffectedStatusType (only needed for XML serialization)
 - [ ] Review struct names for possible improvement
 - [ ] Natural Go API for building a vulnerability representation
-- [ ] When there are errors after loading a JSON version, better information for
-  locating those errors
+- [ ] When there are errors in Report, provide better information for locating
+  those errors
 - [ ] Attempt export of individual vulnerabilities to MITRE's CVE JSON format
-- [ ] Rename "ReportMeta" to --> Meta
+- [x] Rename "ReportMeta" to --> Meta
 - [ ] Remove unneeded public types:
   - [ ] Collapse Publisher into Meta
   - [ ] Collapse Tracking into Meta

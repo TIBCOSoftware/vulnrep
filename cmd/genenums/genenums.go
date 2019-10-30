@@ -131,6 +131,7 @@ func noQuotes(b []byte) string {
 
 // {{.Comment}}
 type {{.TypeName}} int
+type exp{{.TypeName}} {{.TypeName}}
 
 // Values for {{.TypeName}}
 const (
@@ -140,18 +141,18 @@ const (
 	max{{.TypeName}}
 )
 
-var gen{{.TypeName}}ToXMLStr = map[{{.TypeName}}]string{
-{{range .Values}}	{{.GoName}}: "{{.XML}}",
+var gen{{.TypeName}}ToXMLStr = map[exp{{.TypeName}}]string{
+{{range .Values}}	exp{{$typeName}}({{.GoName}}): "{{.XML}}",
 {{end -}}
 }
 
-var genXMLStrTo{{.TypeName}} = map[string]{{.TypeName}}{
-{{range .Values}}	"{{.XML}}": {{.GoName}},
+var genXMLStrTo{{.TypeName}} = map[string]exp{{.TypeName}}{
+{{range .Values}}	"{{.XML}}": exp{{$typeName}}({{.GoName}}),
 {{end -}}
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func(obj *{{.TypeName}}) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func(obj *exp{{.TypeName}}) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding {{.TypeName}}: %v", err)
@@ -163,7 +164,7 @@ func(obj *{{.TypeName}}) UnmarshalXML(d *xml.Decoder, start xml.StartElement) er
 	return nil
 }
 
-func (obj *{{.TypeName}}) mapXMLValue(s string) error {
+func (obj *exp{{.TypeName}}) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrTo{{.TypeName}}[s]; !ok {
 		return fmt.Errorf("unrecognized {{.TypeName}} value %v", s)
@@ -172,12 +173,12 @@ func (obj *{{.TypeName}}) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *{{.TypeName}}) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *exp{{.TypeName}}) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj {{.TypeName}}) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj exp{{.TypeName}}) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := gen{{.TypeName}}ToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized {{.TypeName}} value %v", obj)
@@ -186,7 +187,7 @@ func (obj {{.TypeName}}) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj {{.TypeName}}) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj exp{{.TypeName}}) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := gen{{.TypeName}}ToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized {{.TypeName}} %v", obj)
@@ -194,18 +195,18 @@ func (obj {{.TypeName}}) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrTo{{.TypeName}} = map[string]{{.TypeName}}{
-	{{range .Values}}	"{{.JSON}}": {{.GoName}},
+var genJSONStrTo{{.TypeName}} = map[string]exp{{.TypeName}}{
+	{{range .Values}}	"{{.JSON}}": exp{{$typeName}}({{.GoName}}),
 	{{end -}}
 }
 	
-var gen{{.TypeName}}ToJSONStr = map[{{.TypeName}}]string{
-	{{range .Values}}	{{.GoName}}: "{{.JSON}}",
+var gen{{.TypeName}}ToJSONStr = map[exp{{.TypeName}}]string{
+	{{range .Values}}	exp{{$typeName}}({{.GoName}}): "{{.JSON}}",
 	{{end -}}
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *{{.TypeName}}) UnmarshalJSON(data []byte) error {
+func (obj *exp{{.TypeName}}) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrTo{{.TypeName}}[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized {{.TypeName}} value %v", string(data))
@@ -214,7 +215,7 @@ func (obj *{{.TypeName}}) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj {{.TypeName}}) MarshalJSON() ([]byte, error) {
+func (obj exp{{.TypeName}}) MarshalJSON() ([]byte, error) {
 	s, ok := gen{{.TypeName}}ToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized {{.TypeName}} value %v", obj)
@@ -222,7 +223,7 @@ func (obj {{.TypeName}}) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj {{.TypeName}}) check(val *Validator) {
+func (obj {{.TypeName}}) check(val *validator) {
 	if obj < 0 || obj >= max{{.TypeName}} {
 		val.err(fmt.Sprintf("unrecognized {{.TypeName}} %v", obj))
 	}

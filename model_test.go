@@ -128,7 +128,7 @@ func failIfNotPrepped(t *testing.T, necessaryFiles ...string) {
 func TestCompliantOutput(t *testing.T) {
 
 	failIfNotPrepped(t, "prepared/mod_csaf_schema.json")
-	modifiedJsonSchema, err := filepath.Abs("prepared/mod_csaf_schema.json")
+	modifiedJSONSchema, err := filepath.Abs("prepared/mod_csaf_schema.json")
 	assert.NoError(t, err)
 
 	raw, err := ioutil.ReadFile("test/cvrf-1.2-test-use-everything.xml")
@@ -142,7 +142,7 @@ func TestCompliantOutput(t *testing.T) {
 	assert.NoError(t, r.ToCSAF(jsonOut))
 	assert.NoError(t, jsonOut.Close())
 
-	schemaLoader := gojsonschema.NewReferenceLoader(fileToURLStr(modifiedJsonSchema))
+	schemaLoader := gojsonschema.NewReferenceLoader(fileToURLStr(modifiedJSONSchema))
 	documentLoader := gojsonschema.NewReferenceLoader(fileToURLStr(outPath))
 	result, err := gojsonschema.Validate(schemaLoader, documentLoader)
 	assert.NoError(t, err)

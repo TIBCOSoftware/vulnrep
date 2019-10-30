@@ -61,10 +61,10 @@ type reportV12 struct {
 // encompassing internal model.
 func (r *reportV12) asReport() (Report, error) {
 
-	meta := ReportMeta{
+	meta := Meta{
 		Title:             r.Title,
 		Type:              r.Type,
-		Publisher:         Publisher(r.Publisher),
+		Publisher:         r.Publisher.asPublisher(),
 		Tracking:          r.Tracking.asTracking(),
 		Notes:             asNotes(r.DocumentNotes),
 		Distribution:      r.Distribution,
@@ -90,10 +90,6 @@ func (r *reportV12) asReport() (Report, error) {
 
 func toReportXML(r Report) reportV12 {
 
-	refs := make([]referenceExp, 0, len(r.Meta.References))
-	for _, ref := range r.Meta.References {
-		refs = append(refs, referenceExp(ref))
-	}
 	acks := make([]acknowledgmentExp, 0, len(r.Meta.Acknowledgments))
 	for _, ack := range r.Meta.Acknowledgments {
 		acks = append(acks, acknowledgmentExp(ack))
@@ -106,12 +102,12 @@ func toReportXML(r Report) reportV12 {
 	return reportV12{
 		Title:             r.Meta.Title,
 		Type:              r.Meta.Type,
-		Publisher:         publisherExp(r.Meta.Publisher),
+		Publisher:         toPublisherExp(r.Meta.Publisher),
 		Tracking:          toTrackingExp(r.Meta.Tracking),
 		DocumentNotes:     toNotesXML(r.Meta.Notes),
 		Distribution:      r.Meta.Distribution,
 		AggregateSeverity: toAggregateSeverityExp(r.Meta.AggregateSeverity),
-		References:        refs,
+		References:        toReferenceExps(r.Meta.References),
 		Acknowledgments:   acks,
 		ProductTree:       toProductTreeXML(r.ProductTree),
 		Vulnerabilities:   vulns}
@@ -119,10 +115,26 @@ func toReportXML(r Report) reportV12 {
 
 // PublisherXML captures publisher information from a CVRF document
 type publisherExp struct {
-	Type             PublisherType `xml:"Type,attr" json:"type"`
-	VendorID         string        `xml:"VendorID,attr,omitempty" json:"vendor_id,omitempty"`
-	ContactDetails   string        `xml:"ContactDetails,omitempty" json:"contact_details,omitempty"`
-	IssuingAuthority string        `xml:"IssuingAuthority,omitempty" json:"issuing_authority,omitempty"`
+	Type             expPublisherType `xml:"Type,attr" json:"type"`
+	VendorID         string           `xml:"VendorID,attr,omitempty" json:"vendor_id,omitempty"`
+	ContactDetails   string           `xml:"ContactDetails,omitempty" json:"contact_details,omitempty"`
+	IssuingAuthority string           `xml:"IssuingAuthority,omitempty" json:"issuing_authority,omitempty"`
+}
+
+func toPublisherExp(pub Publisher) publisherExp {
+	return publisherExp{
+		Type:             expPublisherType(pub.Type),
+		VendorID:         pub.VendorID,
+		ContactDetails:   pub.ContactDetails,
+		IssuingAuthority: pub.IssuingAuthority}
+}
+
+func (pe publisherExp) asPublisher() Publisher {
+	return Publisher{
+		Type:             PublisherType(pe.Type),
+		VendorID:         pe.VendorID,
+		ContactDetails:   pe.ContactDetails,
+		IssuingAuthority: pe.IssuingAuthority}
 }
 
 func timePtrToTime(t *time.Time) time.Time {
@@ -144,7 +156,7 @@ func timeToTimePtr(t time.Time) *time.Time {
 type trackingExp struct {
 	ID                 string        `xml:"Identification>ID" json:"id"`
 	Aliases            []string      `xml:"Identification>Alias,omitempty" json:"aliases,omitempty"`
-	Status             DocStatus     `xml:"Status" json:"status"`
+	Status             expDocStatus  `xml:"Status" json:"status"`
 	Version            RevisionStr   `xml:"Version" json:"version"`
 	Revisions          []revisionExp `xml:"RevisionHistory>Revision" json:"revision_history"`
 	InitialReleaseDate *time.Time    `xml:"InitialReleaseDate,omitempty" json:"initial_release_date,omitempty"`
@@ -157,7 +169,7 @@ func toTrackingExp(t Tracking) trackingExp {
 	return trackingExp{
 		ID:                 t.ID,
 		Aliases:            t.Aliases,
-		Status:             t.Status,
+		Status:             expDocStatus(t.Status),
 		Version:            t.Version,
 		Revisions:          toRevisionExps(t.Revisions),
 		InitialReleaseDate: timeToTimePtr(t.InitialReleaseDate),
@@ -174,7 +186,7 @@ func (t trackingExp) asTracking() Tracking {
 	return Tracking{
 		ID:                 t.ID,
 		Aliases:            t.Aliases,
-		Status:             t.Status,
+		Status:             DocStatus(t.Status),
 		Version:            t.Version,
 		Revisions:          convRevs,
 		InitialReleaseDate: timePtrToTime(t.InitialReleaseDate),
@@ -245,17 +257,22 @@ func toRevisionExps(revs []Revision) []revisionExp {
 
 // noteXML captures the document level notes of a CVRF document
 type noteExp struct {
-	Title    string   `xml:"Title,attr,omitempty" json:"title,omitempty"`
-	Audience string   `xml:"Audience,attr,omitempty" json:"audience,omitempty"`
-	Type     NoteType `xml:"Type,attr" json:"type"`
-	Ordinal  int      `xml:"Ordinal,attr" json:"ordinal"`
-	Text     string   `xml:",chardata" json:"text"`
+	Title    string      `xml:"Title,attr,omitempty" json:"title,omitempty"`
+	Audience string      `xml:"Audience,attr,omitempty" json:"audience,omitempty"`
+	Type     expNoteType `xml:"Type,attr" json:"type"`
+	Ordinal  int         `xml:"Ordinal,attr" json:"ordinal"`
+	Text     string      `xml:",chardata" json:"text"`
 }
 
 func asNotes(notes []noteExp) []Note {
 	result := make([]Note, 0, len(notes))
 	for _, note := range notes {
-		result = append(result, Note(note))
+		result = append(result, Note{
+			Title:    note.Title,
+			Audience: note.Audience,
+			Type:     NoteType(note.Type),
+			Ordinal:  note.Ordinal,
+			Text:     note.Text})
 	}
 	return result
 }
@@ -263,22 +280,30 @@ func asNotes(notes []noteExp) []Note {
 func toNotesXML(notes []Note) []noteExp {
 	result := make([]noteExp, 0, len(notes))
 	for _, note := range notes {
-		result = append(result, noteExp(note))
+		result = append(result, noteExp{
+			Title:    note.Title,
+			Audience: note.Audience,
+			Type:     expNoteType(note.Type),
+			Ordinal:  note.Ordinal,
+			Text:     note.Text})
 	}
 	return result
 }
 
 // referenceXML captures document level references in CVRF
 type referenceExp struct {
-	Type        ReferenceType `xml:"Type,attr,omitempty" json:"type,omitempty"`
-	URL         string        `xml:"URL" json:"url"`
-	Description string        `xml:"Description" json:"description"`
+	Type        expReferenceType `xml:"Type,attr,omitempty" json:"type,omitempty"`
+	URL         string           `xml:"URL" json:"url"`
+	Description string           `xml:"Description" json:"description"`
 }
 
 func asReferences(refs []referenceExp) []Reference {
 	result := make([]Reference, 0, len(refs))
 	for _, ref := range refs {
-		result = append(result, Reference(ref))
+		result = append(result, Reference{
+			Type:        ReferenceType(ref.Type),
+			URL:         ref.URL,
+			Description: ref.Description})
 	}
 	return result
 }
@@ -286,7 +311,10 @@ func asReferences(refs []referenceExp) []Reference {
 func toReferenceExps(refs []Reference) []referenceExp {
 	result := make([]referenceExp, 0, len(refs))
 	for _, ref := range refs {
-		result = append(result, referenceExp(ref))
+		result = append(result, referenceExp{
+			Type:        expReferenceType(ref.Type),
+			URL:         ref.URL,
+			Description: ref.Description})
 	}
 	return result
 }
@@ -425,14 +453,14 @@ func asBranchesAndLeaves(prods map[ProductID]*Product,
 			foundProd := prods[branch.Product.ProductID]
 			toAdd := ProductLeaf{
 				Name:    branch.Name,
-				Type:    branch.Type,
+				Type:    BranchType(branch.Type),
 				Product: foundProd}
 			resultLeaves = append(resultLeaves, toAdd)
 		} else {
 			childBranches, childLeaves := asBranchesAndLeaves(prods, branch.Branches)
 			toAdd := Branch{
 				Name:     branch.Name,
-				Type:     branch.Type,
+				Type:     BranchType(branch.Type),
 				Branches: childBranches,
 				Leaves:   childLeaves}
 			resultBranches = append(resultBranches, toAdd)
@@ -443,7 +471,7 @@ func asBranchesAndLeaves(prods map[ProductID]*Product,
 
 // branchXML captures the XML representation of branches in the product tree
 type branchExp struct {
-	Type     BranchType      `xml:"Type,attr" json:"type"`
+	Type     expBranchType   `xml:"Type,attr" json:"type"`
 	Name     string          `xml:"Name,attr" json:"name"`
 	Branches []branchExp     `xml:"Branch,omitempty" json:"branches,omitempty"`
 	Product  *fullProductExp `xml:"FullProductName,omitempty" json:"product,omitempty"`
@@ -459,7 +487,7 @@ func toBranchExp(br Branch) branchExp {
 	}
 	return branchExp{
 		Name:     br.Name,
-		Type:     br.Type,
+		Type:     expBranchType(br.Type),
 		Branches: branches,
 		Product:  nil}
 }
@@ -469,7 +497,7 @@ func toSingleBranch(leaf ProductLeaf) branchExp {
 	prod := toFullProductExp(leaf.Product)
 	return branchExp{
 		Name:     leaf.Name,
-		Type:     leaf.Type,
+		Type:     expBranchType(leaf.Type),
 		Branches: nil,
 		Product:  &prod}
 }
@@ -509,10 +537,10 @@ func (fpx fullProductExp) asProduct() *Product {
 // relationshipXML captures the XML representation of the relationship component of
 // the product tree.
 type relationshipExp struct {
-	ProductReference          ProductID        `xml:"ProductReference,attr" json:"product_reference"`
-	RelationshipType          RelationshipType `xml:"RelationType,attr" json:"relationship_type"`
-	RelatesToProductReference ProductID        `xml:"RelatesToProductReference,attr" json:"relates_to_product_reference"`
-	FullProductNames          []fullProductExp `xml:"FullProductName" json:"full_product_names"`
+	ProductReference          ProductID           `xml:"ProductReference,attr" json:"product_reference"`
+	RelationshipType          expRelationshipType `xml:"RelationType,attr" json:"relationship_type"`
+	RelatesToProductReference ProductID           `xml:"RelatesToProductReference,attr" json:"relates_to_product_reference"`
+	FullProductNames          []fullProductExp    `xml:"FullProductName" json:"full_product_names"`
 }
 
 func toRelationshipExp(rel Relationship) relationshipExp {
@@ -523,7 +551,7 @@ func toRelationshipExp(rel Relationship) relationshipExp {
 	}
 
 	return relationshipExp{
-		RelationshipType:          rel.Type,
+		RelationshipType:          expRelationshipType(rel.Type),
 		ProductReference:          rel.Reference.ID,
 		RelatesToProductReference: rel.RelatesToReference.ID,
 		FullProductNames:          products}
@@ -537,7 +565,7 @@ func (rx relationshipExp) asRelationship(ctx *loadCtx) Relationship {
 	}
 
 	return Relationship{
-		Type:               rx.RelationshipType,
+		Type:               RelationshipType(rx.RelationshipType),
 		Products:           prods,
 		Reference:          ctx.prodMap[rx.ProductReference],
 		RelatesToReference: ctx.prodMap[rx.RelatesToProductReference]}
@@ -585,7 +613,7 @@ type vulnerabilityXML struct {
 	Notes           []noteExp           `xml:"Notes>Note"`
 	DiscoveryDate   *time.Time          `xml:"DiscoveryDate,omitempty"`
 	ReleaseDate     *time.Time          `xml:"ReleaseDate,omitempty"`
-	Involvements    []Involvement       `xml:"Involvements>Involvement,omitempty"`
+	Involvements    []involvementExp    `xml:"Involvements>Involvement,omitempty"`
 	CVE             string              `xml:"CVE,omitempty"`
 	CWE             *cweExp             `xml:"CWE,omitempty"`
 	Statuses        *productStatusXML   `xml:"ProductStatuses,omitempty"`
@@ -606,7 +634,7 @@ func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
 		Notes:           toNotesXML(v.Notes),
 		DiscoveryDate:   timeToTimePtr(v.DiscoveryDate),
 		ReleaseDate:     timeToTimePtr(v.ReleaseDate),
-		Involvements:    v.Involvements,
+		Involvements:    toInvolvementExps(v.Involvements),
 		CVE:             v.CVE,
 		CWE:             toCWEExp(v.CWE),
 		Statuses:        toStatusXML(v.Statuses),
@@ -631,7 +659,7 @@ func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
 		Notes:           asNotes(vx.Notes),
 		DiscoveryDate:   timePtrToTime(vx.DiscoveryDate),
 		ReleaseDate:     timePtrToTime(vx.ReleaseDate),
-		Involvements:    vx.Involvements,
+		Involvements:    asInvolvements(vx.Involvements),
 		CVE:             vx.CVE,
 		CWE:             vx.CWE.asCWE(),
 		Statuses:        asStatus(ctx, vx.Statuses),
@@ -690,26 +718,27 @@ func (cwe *cweExp) asCWE() *CWE {
 
 // statusExp captures the list of all products with a given status.
 type statusXML struct {
-	Type       affectedStatusType `xml:"Type,attr"`
-	ProductIDs []ProductID        `xml:"ProductID"`
+	Type       expaffectedStatusType `xml:"Type,attr"`
+	ProductIDs []ProductID           `xml:"ProductID"`
 }
 
 func oneStatus(result []statusXML, ast affectedStatusType, prods []*Product) []statusXML {
 	if len(prods) == 0 {
 		return result
 	}
-	return append(result, statusXML{Type: ast, ProductIDs: toProductIDs(prods)})
+	return append(result, statusXML{Type: expaffectedStatusType(ast),
+		ProductIDs: toProductIDs(prods)})
 }
 
 func toStatusXML(status Status) *productStatusXML {
 
-	result := oneStatus(nil, AffectedStatusFirstAffected, status.FirstAffected)
-	result = oneStatus(result, AffectedStatusFirstFixed, status.FirstFixed)
-	result = oneStatus(result, AffectedStatusFixed, status.Fixed)
-	result = oneStatus(result, AffectedStatusKnownAffected, status.KnownAffected)
-	result = oneStatus(result, AffectedStatusKnownNotAffected, status.KnownNotAffected)
-	result = oneStatus(result, AffectedStatusLastAffected, status.LastAffected)
-	result = oneStatus(result, AffectedStatusRecommended, status.Recommended)
+	result := oneStatus(nil, affectedStatusFirstAffected, status.FirstAffected)
+	result = oneStatus(result, affectedStatusFirstFixed, status.FirstFixed)
+	result = oneStatus(result, affectedStatusFixed, status.Fixed)
+	result = oneStatus(result, affectedStatusKnownAffected, status.KnownAffected)
+	result = oneStatus(result, affectedStatusKnownNotAffected, status.KnownNotAffected)
+	result = oneStatus(result, affectedStatusLastAffected, status.LastAffected)
+	result = oneStatus(result, affectedStatusRecommended, status.Recommended)
 
 	if len(result) == 0 {
 		return nil
@@ -726,20 +755,20 @@ func asStatus(ctx *loadCtx, statuses *productStatusXML) Status {
 	for _, st := range statuses.Statuses {
 		var list *[]*Product
 		var msg string
-		switch st.Type {
-		case AffectedStatusFirstAffected:
+		switch affectedStatusType(st.Type) {
+		case affectedStatusFirstAffected:
 			list, msg = &result.FirstAffected, "first affected"
-		case AffectedStatusFirstFixed:
+		case affectedStatusFirstFixed:
 			list, msg = &result.FirstFixed, "first fixed"
-		case AffectedStatusFixed:
+		case affectedStatusFixed:
 			list, msg = &result.Fixed, "fixed"
-		case AffectedStatusKnownAffected:
+		case affectedStatusKnownAffected:
 			list, msg = &result.KnownAffected, "known affected"
-		case AffectedStatusKnownNotAffected:
+		case affectedStatusKnownNotAffected:
 			list, msg = &result.KnownNotAffected, "known not affected"
-		case AffectedStatusLastAffected:
+		case affectedStatusLastAffected:
 			list, msg = &result.LastAffected, "last affected"
-		case AffectedStatusRecommended:
+		case affectedStatusRecommended:
 			list, msg = &result.Recommended, "recommended"
 		}
 		*list = append(*list, ctx.asProducts(st.ProductIDs, msg)...)
@@ -749,16 +778,16 @@ func asStatus(ctx *loadCtx, statuses *productStatusXML) Status {
 
 // ThreatXML captures the XML representation of the threat types
 type threatExp struct {
-	Type        ThreatType  `xml:"Type,attr" json:"type"`
-	Description string      `xml:"Description" json:"description"`
-	Date        *time.Time  `xml:"Date,attr,omitempty" json:"date,omitempty"`
-	ProductIDs  []ProductID `xml:"ProductID,omitempty" json:"products,omitempty"`
-	GroupIDs    []GroupID   `xml:"GroupID,omitempty" json:"groups,omitempty"`
+	Type        expThreatType `xml:"Type,attr" json:"type"`
+	Description string        `xml:"Description" json:"description"`
+	Date        *time.Time    `xml:"Date,attr,omitempty" json:"date,omitempty"`
+	ProductIDs  []ProductID   `xml:"ProductID,omitempty" json:"products,omitempty"`
+	GroupIDs    []GroupID     `xml:"GroupID,omitempty" json:"groups,omitempty"`
 }
 
 func toThreatExp(th Threat) threatExp {
 	return threatExp{
-		Type:        th.Type,
+		Type:        expThreatType(th.Type),
 		Description: th.Description,
 		Date:        timeToTimePtr(th.Date),
 		ProductIDs:  toProductIDs(th.Products),
@@ -783,7 +812,7 @@ func asThreats(ctx *loadCtx, threats []threatExp) []Threat {
 
 func (tx threatExp) asThreat(ctx *loadCtx) Threat {
 	return Threat{
-		Type:        tx.Type,
+		Type:        ThreatType(tx.Type),
 		Description: tx.Description,
 		Date:        timePtrToTime(tx.Date),
 		Products:    ctx.asProducts(tx.ProductIDs, "threat"),
@@ -891,13 +920,13 @@ func asScoreSets(ctx *loadCtx, scores []scoreSetV3Exp) []ScoreSet {
 
 // remediationExp captures the XML representation for remediations of a vulnerability
 type remediationExp struct {
-	Type        RemedyType  `xml:"Type,attr" json:"type"`
-	Date        *time.Time  `xml:"Date,attr,omitempty" json:"date,omitempty"`
-	Description string      `xml:"Description" json:"description"`
-	Entitlement []string    `xml:"Entitlement,omitempty" json:"entitlement,omitempty"`
-	URL         string      `xml:"URL,omitempty" json:"url,omitempty"`
-	Products    []ProductID `xml:"ProductID,omitempty" json:"products,omitempty"`
-	Groups      []GroupID   `xml:"GroupID,omitempty" json:"groups,omitempty"`
+	Type        expRemedyType `xml:"Type,attr" json:"type"`
+	Date        *time.Time    `xml:"Date,attr,omitempty" json:"date,omitempty"`
+	Description string        `xml:"Description" json:"description"`
+	Entitlement []string      `xml:"Entitlement,omitempty" json:"entitlement,omitempty"`
+	URL         string        `xml:"URL,omitempty" json:"url,omitempty"`
+	Products    []ProductID   `xml:"ProductID,omitempty" json:"products,omitempty"`
+	Groups      []GroupID     `xml:"GroupID,omitempty" json:"groups,omitempty"`
 }
 
 func asRemediations(ctx *loadCtx, remediations []remediationExp) []Remediation {
@@ -911,7 +940,7 @@ func asRemediations(ctx *loadCtx, remediations []remediationExp) []Remediation {
 func (rem remediationExp) asRemediation(ctx *loadCtx) Remediation {
 
 	return Remediation{
-		Type:        rem.Type,
+		Type:        RemedyType(rem.Type),
 		Date:        timePtrToTime(rem.Date),
 		Description: rem.Description,
 		Entitlement: rem.Entitlement,
@@ -923,7 +952,7 @@ func (rem remediationExp) asRemediation(ctx *loadCtx) Remediation {
 
 func toRemediationExp(rem Remediation) remediationExp {
 	return remediationExp{
-		Type:        rem.Type,
+		Type:        expRemedyType(rem.Type),
 		Date:        timeToTimePtr(rem.Date),
 		Description: rem.Description,
 		Entitlement: rem.Entitlement,
@@ -941,12 +970,42 @@ func toRemediationExps(rems []Remediation) []remediationExp {
 	return result
 }
 
-// LoadErr captures the errors that might occur during load
-type LoadErr struct {
+type involvementExp struct {
+	Party       expPublisherType         `xml:"Party,attr" json:"party"`
+	Status      expInvolvementStatusType `xml:"Status,attr" json:"status"`
+	Description string                   `xml:"Description,omitempty" json:"description,omitempty"`
+}
+
+func asInvolvements(invs []involvementExp) []Involvement {
+	result := make([]Involvement, 0, len(invs))
+	for _, inv := range invs {
+		result = append(result, Involvement{
+			Party:       PublisherType(inv.Party),
+			Status:      InvolvementStatusType(inv.Status),
+			Description: inv.Description})
+	}
+	return result
+}
+
+func toInvolvementExps(invs []Involvement) []involvementExp {
+	result := make([]involvementExp, 0, len(invs))
+	for _, inv := range invs {
+		result = append(result, involvementExp{
+			Party:       expPublisherType(inv.Party),
+			Status:      expInvolvementStatusType(inv.Status),
+			Description: inv.Description})
+	}
+	return result
+}
+
+// ConformanceErr contains identified compliance errors detected during either
+// loading or saving a document.
+type ConformanceErr struct {
 	Issues []string
 }
 
-func (le *LoadErr) Error() string {
+// Error produces one long string for all the conformance errors detected.
+func (le *ConformanceErr) Error() string {
 	return strings.Join(le.Issues, "\n")
 }
 
@@ -960,7 +1019,7 @@ func (lc *loadCtx) err() error {
 	if len(lc.issues) == 0 {
 		return nil
 	}
-	return &LoadErr{Issues: lc.issues}
+	return &ConformanceErr{Issues: lc.issues}
 }
 
 func (lc *loadCtx) issue(msg string) {
@@ -995,8 +1054,11 @@ func (lc *loadCtx) asGroups(list []GroupID, loc string) []*Group {
 	return result
 }
 
-// ParseXML parses CVRF file (format 1.1 or 1.2). Note that all conformance issues
-// are reported as errors.
+// ParseXML parses CVRF file. Both CVRF versions 1.1 and 1.2 are supported.
+//
+// If the parsing process contains only compliance errors, this returns an
+// error of type *ComplianceErr, which can be used to access the individual
+// issues.
 func ParseXML(r io.Reader) (Report, error) {
 
 	var emptyReport Report
@@ -1036,7 +1098,7 @@ func checkCompliance(rep Report, err error) (Report, error) {
 	}
 	val := rep.check()
 	if len(val.Errors) > 0 {
-		return rep, &LoadErr{Issues: val.Errors}
+		return rep, &ConformanceErr{Issues: val.Errors}
 	}
 	return rep, nil
 }

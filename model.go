@@ -20,55 +20,55 @@ import (
 
 //go:generate go run cmd/genenums/genenums.go -definitions enums.json -destination enums.go
 
-// Validator captures the list of errors and warnings found with the model.
-type Validator struct {
+// validator captures the list of errors and warnings found with the model.
+type validator struct {
 	Errors []string
 
 	prodMap  map[*Product]bool
 	groupMap map[*Group]bool
 }
 
-func (v *Validator) checkProduct(p *Product, from string) {
+func (v *validator) checkProduct(p *Product, from string) {
 	if !v.prodMap[p] {
 		v.err(fmt.Sprintf("product %v listed from %v not found in report", p.ID, from))
 	}
 
 }
 
-func (v *Validator) checkProducts(prods []*Product, from string) {
+func (v *validator) checkProducts(prods []*Product, from string) {
 	for _, p := range prods {
 		v.checkProduct(p, from)
 	}
 }
 
-func (v *Validator) err(msg string) { v.Errors = append(v.Errors, msg) }
+func (v *validator) err(msg string) { v.Errors = append(v.Errors, msg) }
 
 // nonZeroDatee generates an error for zero date values.
-func (v *Validator) nonZeroDate(t time.Time, msg string) {
+func (v *validator) nonZeroDate(t time.Time, msg string) {
 	if t.IsZero() {
 		v.err(msg)
 	}
 }
 
-func (v *Validator) nonEmptyLen(length int, msg string) {
+func (v *validator) nonEmptyLen(length int, msg string) {
 	if length == 0 {
 		v.err(msg)
 	}
 }
 
-func (v *Validator) nonEmptyStr(str string, msg string) {
+func (v *validator) nonEmptyStr(str string, msg string) {
 	if len(str) == 0 {
 		v.err(msg)
 	}
 }
 
-func (v *Validator) listOfNonEmptyStr(strs []string, msg string) {
+func (v *validator) listOfNonEmptyStr(strs []string, msg string) {
 	for _, s := range strs {
 		v.nonEmptyStr(s, msg)
 	}
 }
 
-func (v *Validator) urlVal(urlStr string, ctx string) {
+func (v *validator) urlVal(urlStr string, ctx string) {
 	v.nonEmptyStr(urlStr, fmt.Sprintf("empty %v URL", ctx))
 	_, err := url.Parse(urlStr)
 	if err != nil {
@@ -77,10 +77,11 @@ func (v *Validator) urlVal(urlStr string, ctx string) {
 
 }
 
-// ProductID is a type specific string representing product identifiers
+// ProductID is used to identify and reference a specific *Product with the
+// scope of a Report.
 type ProductID string
 
-// GroupID is used to identify and reference a group of products in the model.
+// GroupID is used to identify and reference a set of ProductIDs within a Report.
 type GroupID string
 
 // RevisionStr represents a revision in the model.
@@ -90,7 +91,7 @@ type RevisionStr string
 var revisonStrRegEx = regexp.MustCompile(`^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){0,3}$`)
 
 // Check verifies that the Revision string is valid according to format.
-func (r RevisionStr) check(val *Validator, context interface{}) {
+func (r RevisionStr) check(val *validator, context interface{}) {
 	if !revisonStrRegEx.MatchString(string(r)) {
 		val.err(fmt.Sprintf("invalid revision string in %T", context))
 	}
@@ -98,7 +99,7 @@ func (r RevisionStr) check(val *Validator, context interface{}) {
 
 // Report captures the contents of a vulnerability report
 type Report struct {
-	Meta            ReportMeta
+	Meta            Meta
 	ProductTree     ProductTree
 	Vulnerabilities []Vulnerability
 }
@@ -152,7 +153,7 @@ func (r Report) ToCSAF(w io.Writer) error {
 }
 
 // Check verifies that the report is valid before writing.
-func (r *Report) check() *Validator {
+func (r *Report) check() *validator {
 
 	products := r.ProductTree.allProducts()
 	// ensure uniqueness of product IDs
@@ -177,7 +178,7 @@ func (r *Report) check() *Validator {
 		groupMap[grp] = true
 	}
 
-	val := &Validator{
+	val := &validator{
 		Errors:   errs,
 		prodMap:  prodMap,
 		groupMap: groupMap,
@@ -192,8 +193,8 @@ func (r *Report) check() *Validator {
 	return val
 }
 
-// ReportMeta captures the metadata about a vulnerability report
-type ReportMeta struct {
+// Meta captures the metadata about a vulnerability report.
+type Meta struct {
 	Title             string
 	Type              string
 	Publisher         Publisher
@@ -206,7 +207,7 @@ type ReportMeta struct {
 }
 
 // Check identifies all the possible errors with the ReportMeta information.
-func (rm *ReportMeta) check(val *Validator) {
+func (rm *Meta) check(val *validator) {
 	val.nonEmptyStr(rm.Title, "title must not be empty")
 	val.nonEmptyStr(rm.Type, "type must not be empty")
 	rm.Publisher.check(val)
@@ -236,11 +237,11 @@ func (rm *ReportMeta) check(val *Validator) {
 
 // Cleanup resets ordinals on all notes so that they follow
 // expectations from the specification.
-func (rm *ReportMeta) Cleanup() {
-	for i := range rm.Notes {
-		rm.Notes[i].Ordinal = i + 1
-	}
-}
+// func (rm *ReportMeta) Cleanup() {
+// 	for i := range rm.Notes {
+// 		rm.Notes[i].Ordinal = i + 1
+// 	}
+// }
 
 // Tracking captures the tracking data for a CVRF document
 type Tracking struct {
@@ -255,13 +256,14 @@ type Tracking struct {
 }
 
 // Generator captures the optional information about the tool that generated
-// the vulnerability report.
+// the vulnerability report. Note that this API inserts no value for Generator
+// by default, as this is just an API to be used.
 type Generator struct {
 	Engine string
 	Date   time.Time
 }
 
-func (t Tracking) check(val *Validator) {
+func (t Tracking) check(val *validator) {
 	val.nonEmptyStr(t.ID, "document ID must not be empty")
 	val.listOfNonEmptyStr(t.Aliases, "alias IDs must not be empty")
 	t.Status.check(val)
@@ -285,7 +287,7 @@ type Publisher struct {
 }
 
 // Check makes sure that the Publisher information conforms to constraints.
-func (p Publisher) check(val *Validator) {
+func (p Publisher) check(val *validator) {
 	p.Type.check(val)
 	// note - contact details and issuing authority can be empty strings
 	// todo - check for valid vendor ID?
@@ -299,7 +301,7 @@ type Reference struct {
 }
 
 // Check verifies that a reference is correct.
-func (r *Reference) check(val *Validator) {
+func (r *Reference) check(val *validator) {
 	r.Type.check(val)
 	val.nonEmptyStr(r.Description, "empty description for a reference")
 	val.urlVal(r.URL, "reference")
@@ -313,7 +315,7 @@ type Revision struct {
 }
 
 // Check verifies the document Revision.
-func (r Revision) check(val *Validator) {
+func (r Revision) check(val *validator) {
 	r.Number.check(val, "revision str not valid for document revision")
 	val.nonEmptyStr(r.Description,
 		fmt.Sprintf("description not valid for document revision %v", r.Number))
@@ -331,7 +333,7 @@ type Note struct {
 }
 
 // Check verifies that a Note is valid.
-func (n *Note) check(val *Validator) {
+func (n *Note) check(val *validator) {
 	// Title, audience have no constraints
 	n.Type.check(val)
 	if n.Ordinal <= 0 {
@@ -341,14 +343,14 @@ func (n *Note) check(val *Validator) {
 }
 
 // AggregateSeverity captures the publishers declaration of the severity
-// of the val in a document
+// of the vulnerabilities defined in the report.
 type AggregateSeverity struct {
 	Namespace string
 	Text      string
 }
 
 // Check ensures a valid aggregate severity
-func (as *AggregateSeverity) check(val *Validator) {
+func (as *AggregateSeverity) check(val *validator) {
 	val.nonEmptyStr(as.Text, "aggregate severity is empty")
 	// Namespace may be empty.
 	_, err := url.Parse(as.Namespace)
@@ -366,7 +368,7 @@ type Acknowledgment struct {
 }
 
 // Check ensures that the acknowledgments meet criteria from the spec.
-func (a *Acknowledgment) check(val *Validator) {
+func (a *Acknowledgment) check(val *validator) {
 	val.listOfNonEmptyStr(a.Names, "empty name given for acknowledgment")
 	val.listOfNonEmptyStr(a.Organizations, "empty organizaton given for acknowledgment")
 	val.listOfNonEmptyStr(a.URLs, "empty URLs given for acknowledgment")
@@ -412,7 +414,7 @@ func (pt *ProductTree) allProducts() []*Product {
 }
 
 // Check verifies that the product tree is correct
-func (pt *ProductTree) check(val *Validator) {
+func (pt *ProductTree) check(val *validator) {
 
 	for _, br := range pt.Branches {
 		br.check(val)
@@ -431,7 +433,8 @@ func (pt *ProductTree) check(val *Validator) {
 	}
 }
 
-// Branch captures various instances of products
+// Branch associates a particular type/name data pairing with all contained
+// product definitions.
 type Branch struct {
 	Name     string
 	Type     BranchType
@@ -455,7 +458,7 @@ func productsFromBranches(branches []Branch, list []*Product) []*Product {
 }
 
 // Check verifies that the branches are valid
-func (b *Branch) check(val *Validator) {
+func (b *Branch) check(val *validator) {
 	val.nonEmptyStr(b.Name, "invalid branch name")
 	b.Type.check(val)
 	for _, child := range b.Branches {
@@ -475,7 +478,7 @@ type ProductLeaf struct {
 }
 
 // Check verifies that the ProductLeaf is valid
-func (pl *ProductLeaf) check(val *Validator) {
+func (pl *ProductLeaf) check(val *validator) {
 	val.nonEmptyStr(pl.Name, "invalid branch leaf name")
 	pl.Type.check(val)
 	pl.Product.check(val)
@@ -489,7 +492,7 @@ type Product struct {
 }
 
 // Check verifies that a product is valid.
-func (p *Product) check(val *Validator) {
+func (p *Product) check(val *validator) {
 	val.nonEmptyStr(string(p.ID), "invalid product ID")
 	val.nonEmptyStr(p.Name, "invalid product name")
 }
@@ -502,7 +505,7 @@ type Relationship struct {
 	Products           []*Product
 }
 
-func (r Relationship) check(val *Validator) {
+func (r Relationship) check(val *validator) {
 	r.Type.check(val)
 	val.checkProduct(r.Reference, "relationship reference")
 	val.checkProduct(r.RelatesToReference, "relationship relates to reference")
@@ -516,7 +519,7 @@ type Group struct {
 	Products    []*Product
 }
 
-func (g Group) check(val *Validator) {
+func (g Group) check(val *validator) {
 	val.checkProducts(g.Products, "group "+string(g.ID))
 }
 
@@ -539,7 +542,7 @@ type Vulnerability struct {
 	Acknowledgments []Acknowledgment
 }
 
-func (v *Vulnerability) check(val *Validator) {
+func (v *Vulnerability) check(val *validator) {
 
 	// Title, ID, SystemName can be empty
 	v.ID.check(val)
@@ -576,7 +579,7 @@ type VulnID struct {
 	ID         string
 }
 
-func (vi *VulnID) check(val *Validator) {
+func (vi *VulnID) check(val *validator) {
 	if vi == nil {
 		return
 	}
@@ -587,18 +590,21 @@ func (vi *VulnID) check(val *Validator) {
 
 // Involvement captures the involvement of third parties.
 type Involvement struct {
-	Party       PublisherType         `xml:"Party,attr" json:"party"`
-	Status      InvolvementStatusType `xml:"Status,attr" json:"status"`
-	Description string                `xml:"Description,omitempty" json:"description,omitempty"`
+	Party       PublisherType
+	Status      InvolvementStatusType
+	Description string
 }
 
-func (i *Involvement) check(val *Validator) {
+func (i *Involvement) check(val *validator) {
 	i.Party.check(val)
 	i.Status.check(val)
 	// Description can be empty
 }
 
-// CWE captures CWE related information
+// CWE captures the Common Weakness Enumeration (CWE) associated with a particular
+// vulnerability.
+//
+// See https://cwe.mitre.org/ for details about these values.
 type CWE struct {
 	ID          string
 	Description string
@@ -607,16 +613,16 @@ type CWE struct {
 // Status captures the different ways that a vulnerability applies to various
 // products.
 type Status struct {
-	Fixed            []*Product `json:"fixed,omitempty"`
-	FirstAffected    []*Product `json:"first_affected,omitempty"`
-	KnownAffected    []*Product `json:"known_affected,omitempty"`
-	KnownNotAffected []*Product `json:"known_not_affected,omitempty"`
-	FirstFixed       []*Product `json:"first_fixed,omitempty"`
-	Recommended      []*Product `json:"recommended,omitempty"`
-	LastAffected     []*Product `json:"last_affected,omitempty"`
+	Fixed            []*Product
+	FirstAffected    []*Product
+	KnownAffected    []*Product
+	KnownNotAffected []*Product
+	FirstFixed       []*Product
+	Recommended      []*Product
+	LastAffected     []*Product
 }
 
-func (s *Status) check(val *Validator) {
+func (s *Status) check(val *validator) {
 	val.checkProducts(s.FirstAffected, "first affected")
 	val.checkProducts(s.FirstFixed, "first affected")
 	val.checkProducts(s.Fixed, "fixed")
@@ -635,7 +641,7 @@ type Threat struct {
 	Groups      []*Group
 }
 
-func (th *Threat) check(val *Validator) {
+func (th *Threat) check(val *validator) {
 	th.Type.check(val)
 	val.nonEmptyStr(th.Description, "threat description")
 	val.checkProducts(th.Products, "threat")
@@ -654,7 +660,7 @@ type CVSSScoreSets struct {
 
 // check validates the contents of a score set - note that a nil score set is
 // allowed.
-func (cvss *CVSSScoreSets) check(val *Validator) {
+func (cvss *CVSSScoreSets) check(val *validator) {
 	if cvss == nil {
 		return
 	}
@@ -662,7 +668,7 @@ func (cvss *CVSSScoreSets) check(val *Validator) {
 	checkScoreSets(cvss.V3, val)
 }
 
-func checkScoreSets(scores []ScoreSet, val *Validator) {
+func checkScoreSets(scores []ScoreSet, val *validator) {
 	for _, score := range scores {
 		score.check(val)
 	}
@@ -677,7 +683,7 @@ type ScoreSet struct {
 	Products           []*Product
 }
 
-func (ss ScoreSet) check(val *Validator) {
+func (ss ScoreSet) check(val *validator) {
 	val.checkProducts(ss.Products, "score set")
 }
 
@@ -692,7 +698,7 @@ type Remediation struct {
 	URL         string
 }
 
-func (r *Remediation) check(val *Validator) {
+func (r *Remediation) check(val *validator) {
 	r.Type.check(val)
 	val.nonEmptyStr(r.Description, "remediation description")
 	for _, s := range r.Entitlement {

@@ -34,6 +34,7 @@ func noQuotes(b []byte) string {
 
 // RelationshipType defines possible relations between components.
 type RelationshipType int
+type expRelationshipType RelationshipType
 
 // Values for RelationshipType
 const (
@@ -46,24 +47,24 @@ const (
 	maxRelationshipType
 )
 
-var genRelationshipTypeToXMLStr = map[RelationshipType]string{
-	RelationshipDefaultComponentOf:  "Default Component Of",
-	RelationshipOptionalComponentOf: "Optional Component Of",
-	RelationshipExternalComponentOf: "External Component Of",
-	RelationshipInstalledOn:         "Installed On",
-	RelationshipInstalledWith:       "Installed With",
+var genRelationshipTypeToXMLStr = map[expRelationshipType]string{
+	expRelationshipType(RelationshipDefaultComponentOf):  "Default Component Of",
+	expRelationshipType(RelationshipOptionalComponentOf): "Optional Component Of",
+	expRelationshipType(RelationshipExternalComponentOf): "External Component Of",
+	expRelationshipType(RelationshipInstalledOn):         "Installed On",
+	expRelationshipType(RelationshipInstalledWith):       "Installed With",
 }
 
-var genXMLStrToRelationshipType = map[string]RelationshipType{
-	"Default Component Of":  RelationshipDefaultComponentOf,
-	"Optional Component Of": RelationshipOptionalComponentOf,
-	"External Component Of": RelationshipExternalComponentOf,
-	"Installed On":          RelationshipInstalledOn,
-	"Installed With":        RelationshipInstalledWith,
+var genXMLStrToRelationshipType = map[string]expRelationshipType{
+	"Default Component Of":  expRelationshipType(RelationshipDefaultComponentOf),
+	"Optional Component Of": expRelationshipType(RelationshipOptionalComponentOf),
+	"External Component Of": expRelationshipType(RelationshipExternalComponentOf),
+	"Installed On":          expRelationshipType(RelationshipInstalledOn),
+	"Installed With":        expRelationshipType(RelationshipInstalledWith),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *RelationshipType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expRelationshipType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding RelationshipType: %v", err)
@@ -75,7 +76,7 @@ func (obj *RelationshipType) UnmarshalXML(d *xml.Decoder, start xml.StartElement
 	return nil
 }
 
-func (obj *RelationshipType) mapXMLValue(s string) error {
+func (obj *expRelationshipType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToRelationshipType[s]; !ok {
 		return fmt.Errorf("unrecognized RelationshipType value %v", s)
@@ -84,12 +85,12 @@ func (obj *RelationshipType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *RelationshipType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expRelationshipType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj RelationshipType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expRelationshipType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genRelationshipTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized RelationshipType value %v", obj)
@@ -98,7 +99,7 @@ func (obj RelationshipType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj RelationshipType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expRelationshipType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genRelationshipTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized RelationshipType %v", obj)
@@ -106,24 +107,24 @@ func (obj RelationshipType) MarshalXML(e *xml.Encoder, start xml.StartElement) e
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToRelationshipType = map[string]RelationshipType{
-	"default_component_of":  RelationshipDefaultComponentOf,
-	"optional_component_of": RelationshipOptionalComponentOf,
-	"external_component_of": RelationshipExternalComponentOf,
-	"installed_on":          RelationshipInstalledOn,
-	"installed_with":        RelationshipInstalledWith,
+var genJSONStrToRelationshipType = map[string]expRelationshipType{
+	"default_component_of":  expRelationshipType(RelationshipDefaultComponentOf),
+	"optional_component_of": expRelationshipType(RelationshipOptionalComponentOf),
+	"external_component_of": expRelationshipType(RelationshipExternalComponentOf),
+	"installed_on":          expRelationshipType(RelationshipInstalledOn),
+	"installed_with":        expRelationshipType(RelationshipInstalledWith),
 }
 
-var genRelationshipTypeToJSONStr = map[RelationshipType]string{
-	RelationshipDefaultComponentOf:  "default_component_of",
-	RelationshipOptionalComponentOf: "optional_component_of",
-	RelationshipExternalComponentOf: "external_component_of",
-	RelationshipInstalledOn:         "installed_on",
-	RelationshipInstalledWith:       "installed_with",
+var genRelationshipTypeToJSONStr = map[expRelationshipType]string{
+	expRelationshipType(RelationshipDefaultComponentOf):  "default_component_of",
+	expRelationshipType(RelationshipOptionalComponentOf): "optional_component_of",
+	expRelationshipType(RelationshipExternalComponentOf): "external_component_of",
+	expRelationshipType(RelationshipInstalledOn):         "installed_on",
+	expRelationshipType(RelationshipInstalledWith):       "installed_with",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *RelationshipType) UnmarshalJSON(data []byte) error {
+func (obj *expRelationshipType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToRelationshipType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized RelationshipType value %v", string(data))
@@ -132,7 +133,7 @@ func (obj *RelationshipType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj RelationshipType) MarshalJSON() ([]byte, error) {
+func (obj expRelationshipType) MarshalJSON() ([]byte, error) {
 	s, ok := genRelationshipTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized RelationshipType value %v", obj)
@@ -140,7 +141,7 @@ func (obj RelationshipType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj RelationshipType) check(val *Validator) {
+func (obj RelationshipType) check(val *validator) {
 	if obj < 0 || obj >= maxRelationshipType {
 		val.err(fmt.Sprintf("unrecognized RelationshipType %v", obj))
 	}
@@ -152,6 +153,7 @@ func (obj RelationshipType) check(val *Validator) {
 
 // InvolvementStatusType captures the ongoing involvement of other parties
 type InvolvementStatusType int
+type expInvolvementStatusType InvolvementStatusType
 
 // Values for InvolvementStatusType
 const (
@@ -165,26 +167,26 @@ const (
 	maxInvolvementStatusType
 )
 
-var genInvolvementStatusTypeToXMLStr = map[InvolvementStatusType]string{
-	InvolvementStatusOpen:             "Open",
-	InvolvementStatusDisputed:         "Disputed",
-	InvolvementStatusInProgress:       "In Progress",
-	InvolvementStatusCompleted:        "Completed",
-	InvolvementStatusContactAttempted: "Contact Attempted",
-	InvolvementStatusNotContacted:     "Not Contacted",
+var genInvolvementStatusTypeToXMLStr = map[expInvolvementStatusType]string{
+	expInvolvementStatusType(InvolvementStatusOpen):             "Open",
+	expInvolvementStatusType(InvolvementStatusDisputed):         "Disputed",
+	expInvolvementStatusType(InvolvementStatusInProgress):       "In Progress",
+	expInvolvementStatusType(InvolvementStatusCompleted):        "Completed",
+	expInvolvementStatusType(InvolvementStatusContactAttempted): "Contact Attempted",
+	expInvolvementStatusType(InvolvementStatusNotContacted):     "Not Contacted",
 }
 
-var genXMLStrToInvolvementStatusType = map[string]InvolvementStatusType{
-	"Open":              InvolvementStatusOpen,
-	"Disputed":          InvolvementStatusDisputed,
-	"In Progress":       InvolvementStatusInProgress,
-	"Completed":         InvolvementStatusCompleted,
-	"Contact Attempted": InvolvementStatusContactAttempted,
-	"Not Contacted":     InvolvementStatusNotContacted,
+var genXMLStrToInvolvementStatusType = map[string]expInvolvementStatusType{
+	"Open":              expInvolvementStatusType(InvolvementStatusOpen),
+	"Disputed":          expInvolvementStatusType(InvolvementStatusDisputed),
+	"In Progress":       expInvolvementStatusType(InvolvementStatusInProgress),
+	"Completed":         expInvolvementStatusType(InvolvementStatusCompleted),
+	"Contact Attempted": expInvolvementStatusType(InvolvementStatusContactAttempted),
+	"Not Contacted":     expInvolvementStatusType(InvolvementStatusNotContacted),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *InvolvementStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expInvolvementStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding InvolvementStatusType: %v", err)
@@ -196,7 +198,7 @@ func (obj *InvolvementStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartEl
 	return nil
 }
 
-func (obj *InvolvementStatusType) mapXMLValue(s string) error {
+func (obj *expInvolvementStatusType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToInvolvementStatusType[s]; !ok {
 		return fmt.Errorf("unrecognized InvolvementStatusType value %v", s)
@@ -205,12 +207,12 @@ func (obj *InvolvementStatusType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *InvolvementStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expInvolvementStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj InvolvementStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expInvolvementStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genInvolvementStatusTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized InvolvementStatusType value %v", obj)
@@ -219,7 +221,7 @@ func (obj InvolvementStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error)
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj InvolvementStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expInvolvementStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genInvolvementStatusTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized InvolvementStatusType %v", obj)
@@ -227,26 +229,26 @@ func (obj InvolvementStatusType) MarshalXML(e *xml.Encoder, start xml.StartEleme
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToInvolvementStatusType = map[string]InvolvementStatusType{
-	"open":              InvolvementStatusOpen,
-	"disputed":          InvolvementStatusDisputed,
-	"in_progress":       InvolvementStatusInProgress,
-	"completed":         InvolvementStatusCompleted,
-	"contact_attempted": InvolvementStatusContactAttempted,
-	"not_contacted":     InvolvementStatusNotContacted,
+var genJSONStrToInvolvementStatusType = map[string]expInvolvementStatusType{
+	"open":              expInvolvementStatusType(InvolvementStatusOpen),
+	"disputed":          expInvolvementStatusType(InvolvementStatusDisputed),
+	"in_progress":       expInvolvementStatusType(InvolvementStatusInProgress),
+	"completed":         expInvolvementStatusType(InvolvementStatusCompleted),
+	"contact_attempted": expInvolvementStatusType(InvolvementStatusContactAttempted),
+	"not_contacted":     expInvolvementStatusType(InvolvementStatusNotContacted),
 }
 
-var genInvolvementStatusTypeToJSONStr = map[InvolvementStatusType]string{
-	InvolvementStatusOpen:             "open",
-	InvolvementStatusDisputed:         "disputed",
-	InvolvementStatusInProgress:       "in_progress",
-	InvolvementStatusCompleted:        "completed",
-	InvolvementStatusContactAttempted: "contact_attempted",
-	InvolvementStatusNotContacted:     "not_contacted",
+var genInvolvementStatusTypeToJSONStr = map[expInvolvementStatusType]string{
+	expInvolvementStatusType(InvolvementStatusOpen):             "open",
+	expInvolvementStatusType(InvolvementStatusDisputed):         "disputed",
+	expInvolvementStatusType(InvolvementStatusInProgress):       "in_progress",
+	expInvolvementStatusType(InvolvementStatusCompleted):        "completed",
+	expInvolvementStatusType(InvolvementStatusContactAttempted): "contact_attempted",
+	expInvolvementStatusType(InvolvementStatusNotContacted):     "not_contacted",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *InvolvementStatusType) UnmarshalJSON(data []byte) error {
+func (obj *expInvolvementStatusType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToInvolvementStatusType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized InvolvementStatusType value %v", string(data))
@@ -255,7 +257,7 @@ func (obj *InvolvementStatusType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj InvolvementStatusType) MarshalJSON() ([]byte, error) {
+func (obj expInvolvementStatusType) MarshalJSON() ([]byte, error) {
 	s, ok := genInvolvementStatusTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized InvolvementStatusType value %v", obj)
@@ -263,7 +265,7 @@ func (obj InvolvementStatusType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj InvolvementStatusType) check(val *Validator) {
+func (obj InvolvementStatusType) check(val *validator) {
 	if obj < 0 || obj >= maxInvolvementStatusType {
 		val.err(fmt.Sprintf("unrecognized InvolvementStatusType %v", obj))
 	}
@@ -275,42 +277,43 @@ func (obj InvolvementStatusType) check(val *Validator) {
 
 // affectedStatusType only used in XML - captures the status of affected components.
 type affectedStatusType int
+type expaffectedStatusType affectedStatusType
 
 // Values for affectedStatusType
 const (
-	AffectedStatusFirstAffected affectedStatusType = iota
-	AffectedStatusFirstFixed
-	AffectedStatusFixed
-	AffectedStatusKnownAffected
-	AffectedStatusKnownNotAffected
-	AffectedStatusLastAffected
-	AffectedStatusRecommended
+	affectedStatusFirstAffected affectedStatusType = iota
+	affectedStatusFirstFixed
+	affectedStatusFixed
+	affectedStatusKnownAffected
+	affectedStatusKnownNotAffected
+	affectedStatusLastAffected
+	affectedStatusRecommended
 
 	maxaffectedStatusType
 )
 
-var genaffectedStatusTypeToXMLStr = map[affectedStatusType]string{
-	AffectedStatusFirstAffected:    "First Affected",
-	AffectedStatusFirstFixed:       "First Fixed",
-	AffectedStatusFixed:            "Fixed",
-	AffectedStatusKnownAffected:    "Known Affected",
-	AffectedStatusKnownNotAffected: "Known Not Affected",
-	AffectedStatusLastAffected:     "Last Affected",
-	AffectedStatusRecommended:      "Recommended",
+var genaffectedStatusTypeToXMLStr = map[expaffectedStatusType]string{
+	expaffectedStatusType(affectedStatusFirstAffected):    "First Affected",
+	expaffectedStatusType(affectedStatusFirstFixed):       "First Fixed",
+	expaffectedStatusType(affectedStatusFixed):            "Fixed",
+	expaffectedStatusType(affectedStatusKnownAffected):    "Known Affected",
+	expaffectedStatusType(affectedStatusKnownNotAffected): "Known Not Affected",
+	expaffectedStatusType(affectedStatusLastAffected):     "Last Affected",
+	expaffectedStatusType(affectedStatusRecommended):      "Recommended",
 }
 
-var genXMLStrToaffectedStatusType = map[string]affectedStatusType{
-	"First Affected":     AffectedStatusFirstAffected,
-	"First Fixed":        AffectedStatusFirstFixed,
-	"Fixed":              AffectedStatusFixed,
-	"Known Affected":     AffectedStatusKnownAffected,
-	"Known Not Affected": AffectedStatusKnownNotAffected,
-	"Last Affected":      AffectedStatusLastAffected,
-	"Recommended":        AffectedStatusRecommended,
+var genXMLStrToaffectedStatusType = map[string]expaffectedStatusType{
+	"First Affected":     expaffectedStatusType(affectedStatusFirstAffected),
+	"First Fixed":        expaffectedStatusType(affectedStatusFirstFixed),
+	"Fixed":              expaffectedStatusType(affectedStatusFixed),
+	"Known Affected":     expaffectedStatusType(affectedStatusKnownAffected),
+	"Known Not Affected": expaffectedStatusType(affectedStatusKnownNotAffected),
+	"Last Affected":      expaffectedStatusType(affectedStatusLastAffected),
+	"Recommended":        expaffectedStatusType(affectedStatusRecommended),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *affectedStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expaffectedStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding affectedStatusType: %v", err)
@@ -322,7 +325,7 @@ func (obj *affectedStatusType) UnmarshalXML(d *xml.Decoder, start xml.StartEleme
 	return nil
 }
 
-func (obj *affectedStatusType) mapXMLValue(s string) error {
+func (obj *expaffectedStatusType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToaffectedStatusType[s]; !ok {
 		return fmt.Errorf("unrecognized affectedStatusType value %v", s)
@@ -331,12 +334,12 @@ func (obj *affectedStatusType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *affectedStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expaffectedStatusType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj affectedStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expaffectedStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genaffectedStatusTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized affectedStatusType value %v", obj)
@@ -345,7 +348,7 @@ func (obj affectedStatusType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj affectedStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expaffectedStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genaffectedStatusTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized affectedStatusType %v", obj)
@@ -353,28 +356,28 @@ func (obj affectedStatusType) MarshalXML(e *xml.Encoder, start xml.StartElement)
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToaffectedStatusType = map[string]affectedStatusType{
-	"first_affected":     AffectedStatusFirstAffected,
-	"first_fixed":        AffectedStatusFirstFixed,
-	"fixed":              AffectedStatusFixed,
-	"known_affected":     AffectedStatusKnownAffected,
-	"known_not_affected": AffectedStatusKnownNotAffected,
-	"last_affected":      AffectedStatusLastAffected,
-	"recommended":        AffectedStatusRecommended,
+var genJSONStrToaffectedStatusType = map[string]expaffectedStatusType{
+	"first_affected":     expaffectedStatusType(affectedStatusFirstAffected),
+	"first_fixed":        expaffectedStatusType(affectedStatusFirstFixed),
+	"fixed":              expaffectedStatusType(affectedStatusFixed),
+	"known_affected":     expaffectedStatusType(affectedStatusKnownAffected),
+	"known_not_affected": expaffectedStatusType(affectedStatusKnownNotAffected),
+	"last_affected":      expaffectedStatusType(affectedStatusLastAffected),
+	"recommended":        expaffectedStatusType(affectedStatusRecommended),
 }
 
-var genaffectedStatusTypeToJSONStr = map[affectedStatusType]string{
-	AffectedStatusFirstAffected:    "first_affected",
-	AffectedStatusFirstFixed:       "first_fixed",
-	AffectedStatusFixed:            "fixed",
-	AffectedStatusKnownAffected:    "known_affected",
-	AffectedStatusKnownNotAffected: "known_not_affected",
-	AffectedStatusLastAffected:     "last_affected",
-	AffectedStatusRecommended:      "recommended",
+var genaffectedStatusTypeToJSONStr = map[expaffectedStatusType]string{
+	expaffectedStatusType(affectedStatusFirstAffected):    "first_affected",
+	expaffectedStatusType(affectedStatusFirstFixed):       "first_fixed",
+	expaffectedStatusType(affectedStatusFixed):            "fixed",
+	expaffectedStatusType(affectedStatusKnownAffected):    "known_affected",
+	expaffectedStatusType(affectedStatusKnownNotAffected): "known_not_affected",
+	expaffectedStatusType(affectedStatusLastAffected):     "last_affected",
+	expaffectedStatusType(affectedStatusRecommended):      "recommended",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *affectedStatusType) UnmarshalJSON(data []byte) error {
+func (obj *expaffectedStatusType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToaffectedStatusType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized affectedStatusType value %v", string(data))
@@ -383,7 +386,7 @@ func (obj *affectedStatusType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj affectedStatusType) MarshalJSON() ([]byte, error) {
+func (obj expaffectedStatusType) MarshalJSON() ([]byte, error) {
 	s, ok := genaffectedStatusTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized affectedStatusType value %v", obj)
@@ -391,7 +394,7 @@ func (obj affectedStatusType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj affectedStatusType) check(val *Validator) {
+func (obj affectedStatusType) check(val *validator) {
 	if obj < 0 || obj >= maxaffectedStatusType {
 		val.err(fmt.Sprintf("unrecognized affectedStatusType %v", obj))
 	}
@@ -401,8 +404,9 @@ func (obj affectedStatusType) check(val *Validator) {
 * Generated type RemedyType
 *******************************************************************************/
 
-// RemedyType enumerates the types of remedies.
+// RemedyType enumerates the types of remedies for a vulnerability.
 type RemedyType int
+type expRemedyType RemedyType
 
 // Values for RemedyType
 const (
@@ -415,24 +419,24 @@ const (
 	maxRemedyType
 )
 
-var genRemedyTypeToXMLStr = map[RemedyType]string{
-	RemedyWorkaround:    "Workaround",
-	RemedyMitigation:    "Mitigation",
-	RemedyVendorFix:     "Vendor Fix",
-	RemedyNoneAvailable: "None Available",
-	RemedyWillNotFix:    "Will Not Fix",
+var genRemedyTypeToXMLStr = map[expRemedyType]string{
+	expRemedyType(RemedyWorkaround):    "Workaround",
+	expRemedyType(RemedyMitigation):    "Mitigation",
+	expRemedyType(RemedyVendorFix):     "Vendor Fix",
+	expRemedyType(RemedyNoneAvailable): "None Available",
+	expRemedyType(RemedyWillNotFix):    "Will Not Fix",
 }
 
-var genXMLStrToRemedyType = map[string]RemedyType{
-	"Workaround":     RemedyWorkaround,
-	"Mitigation":     RemedyMitigation,
-	"Vendor Fix":     RemedyVendorFix,
-	"None Available": RemedyNoneAvailable,
-	"Will Not Fix":   RemedyWillNotFix,
+var genXMLStrToRemedyType = map[string]expRemedyType{
+	"Workaround":     expRemedyType(RemedyWorkaround),
+	"Mitigation":     expRemedyType(RemedyMitigation),
+	"Vendor Fix":     expRemedyType(RemedyVendorFix),
+	"None Available": expRemedyType(RemedyNoneAvailable),
+	"Will Not Fix":   expRemedyType(RemedyWillNotFix),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *RemedyType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expRemedyType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding RemedyType: %v", err)
@@ -444,7 +448,7 @@ func (obj *RemedyType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 	return nil
 }
 
-func (obj *RemedyType) mapXMLValue(s string) error {
+func (obj *expRemedyType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToRemedyType[s]; !ok {
 		return fmt.Errorf("unrecognized RemedyType value %v", s)
@@ -453,12 +457,12 @@ func (obj *RemedyType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *RemedyType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expRemedyType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj RemedyType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expRemedyType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genRemedyTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized RemedyType value %v", obj)
@@ -467,7 +471,7 @@ func (obj RemedyType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj RemedyType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expRemedyType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genRemedyTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized RemedyType %v", obj)
@@ -475,24 +479,24 @@ func (obj RemedyType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToRemedyType = map[string]RemedyType{
-	"workaround":     RemedyWorkaround,
-	"mitigation":     RemedyMitigation,
-	"vendor_fix":     RemedyVendorFix,
-	"none_available": RemedyNoneAvailable,
-	"will_not_fix":   RemedyWillNotFix,
+var genJSONStrToRemedyType = map[string]expRemedyType{
+	"workaround":     expRemedyType(RemedyWorkaround),
+	"mitigation":     expRemedyType(RemedyMitigation),
+	"vendor_fix":     expRemedyType(RemedyVendorFix),
+	"none_available": expRemedyType(RemedyNoneAvailable),
+	"will_not_fix":   expRemedyType(RemedyWillNotFix),
 }
 
-var genRemedyTypeToJSONStr = map[RemedyType]string{
-	RemedyWorkaround:    "workaround",
-	RemedyMitigation:    "mitigation",
-	RemedyVendorFix:     "vendor_fix",
-	RemedyNoneAvailable: "none_available",
-	RemedyWillNotFix:    "will_not_fix",
+var genRemedyTypeToJSONStr = map[expRemedyType]string{
+	expRemedyType(RemedyWorkaround):    "workaround",
+	expRemedyType(RemedyMitigation):    "mitigation",
+	expRemedyType(RemedyVendorFix):     "vendor_fix",
+	expRemedyType(RemedyNoneAvailable): "none_available",
+	expRemedyType(RemedyWillNotFix):    "will_not_fix",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *RemedyType) UnmarshalJSON(data []byte) error {
+func (obj *expRemedyType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToRemedyType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized RemedyType value %v", string(data))
@@ -501,7 +505,7 @@ func (obj *RemedyType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj RemedyType) MarshalJSON() ([]byte, error) {
+func (obj expRemedyType) MarshalJSON() ([]byte, error) {
 	s, ok := genRemedyTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized RemedyType value %v", obj)
@@ -509,7 +513,7 @@ func (obj RemedyType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj RemedyType) check(val *Validator) {
+func (obj RemedyType) check(val *validator) {
 	if obj < 0 || obj >= maxRemedyType {
 		val.err(fmt.Sprintf("unrecognized RemedyType %v", obj))
 	}
@@ -521,6 +525,7 @@ func (obj RemedyType) check(val *Validator) {
 
 // DocStatus enumerates the possible states of a document.
 type DocStatus int
+type expDocStatus DocStatus
 
 // Values for DocStatus
 const (
@@ -531,20 +536,20 @@ const (
 	maxDocStatus
 )
 
-var genDocStatusToXMLStr = map[DocStatus]string{
-	DocStatusDraft:   "Draft",
-	DocStatusInterim: "Interim",
-	DocStatusFinal:   "Final",
+var genDocStatusToXMLStr = map[expDocStatus]string{
+	expDocStatus(DocStatusDraft):   "Draft",
+	expDocStatus(DocStatusInterim): "Interim",
+	expDocStatus(DocStatusFinal):   "Final",
 }
 
-var genXMLStrToDocStatus = map[string]DocStatus{
-	"Draft":   DocStatusDraft,
-	"Interim": DocStatusInterim,
-	"Final":   DocStatusFinal,
+var genXMLStrToDocStatus = map[string]expDocStatus{
+	"Draft":   expDocStatus(DocStatusDraft),
+	"Interim": expDocStatus(DocStatusInterim),
+	"Final":   expDocStatus(DocStatusFinal),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *DocStatus) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expDocStatus) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding DocStatus: %v", err)
@@ -556,7 +561,7 @@ func (obj *DocStatus) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error
 	return nil
 }
 
-func (obj *DocStatus) mapXMLValue(s string) error {
+func (obj *expDocStatus) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToDocStatus[s]; !ok {
 		return fmt.Errorf("unrecognized DocStatus value %v", s)
@@ -565,12 +570,12 @@ func (obj *DocStatus) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *DocStatus) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expDocStatus) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj DocStatus) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expDocStatus) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genDocStatusToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized DocStatus value %v", obj)
@@ -579,7 +584,7 @@ func (obj DocStatus) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj DocStatus) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expDocStatus) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genDocStatusToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized DocStatus %v", obj)
@@ -587,20 +592,20 @@ func (obj DocStatus) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToDocStatus = map[string]DocStatus{
-	"draft":   DocStatusDraft,
-	"interim": DocStatusInterim,
-	"final":   DocStatusFinal,
+var genJSONStrToDocStatus = map[string]expDocStatus{
+	"draft":   expDocStatus(DocStatusDraft),
+	"interim": expDocStatus(DocStatusInterim),
+	"final":   expDocStatus(DocStatusFinal),
 }
 
-var genDocStatusToJSONStr = map[DocStatus]string{
-	DocStatusDraft:   "draft",
-	DocStatusInterim: "interim",
-	DocStatusFinal:   "final",
+var genDocStatusToJSONStr = map[expDocStatus]string{
+	expDocStatus(DocStatusDraft):   "draft",
+	expDocStatus(DocStatusInterim): "interim",
+	expDocStatus(DocStatusFinal):   "final",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *DocStatus) UnmarshalJSON(data []byte) error {
+func (obj *expDocStatus) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToDocStatus[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized DocStatus value %v", string(data))
@@ -609,7 +614,7 @@ func (obj *DocStatus) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj DocStatus) MarshalJSON() ([]byte, error) {
+func (obj expDocStatus) MarshalJSON() ([]byte, error) {
 	s, ok := genDocStatusToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized DocStatus value %v", obj)
@@ -617,7 +622,7 @@ func (obj DocStatus) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj DocStatus) check(val *Validator) {
+func (obj DocStatus) check(val *validator) {
 	if obj < 0 || obj >= maxDocStatus {
 		val.err(fmt.Sprintf("unrecognized DocStatus %v", obj))
 	}
@@ -627,8 +632,9 @@ func (obj DocStatus) check(val *Validator) {
 * Generated type ReferenceType
 *******************************************************************************/
 
-// ReferenceType enumerates whether a references in self or external.
+// ReferenceType enumerates whether a reference is self or external.
 type ReferenceType int
+type expReferenceType ReferenceType
 
 // Values for ReferenceType
 const (
@@ -638,18 +644,18 @@ const (
 	maxReferenceType
 )
 
-var genReferenceTypeToXMLStr = map[ReferenceType]string{
-	ReferenceExternal: "External",
-	ReferenceSelf:     "Self",
+var genReferenceTypeToXMLStr = map[expReferenceType]string{
+	expReferenceType(ReferenceExternal): "External",
+	expReferenceType(ReferenceSelf):     "Self",
 }
 
-var genXMLStrToReferenceType = map[string]ReferenceType{
-	"External": ReferenceExternal,
-	"Self":     ReferenceSelf,
+var genXMLStrToReferenceType = map[string]expReferenceType{
+	"External": expReferenceType(ReferenceExternal),
+	"Self":     expReferenceType(ReferenceSelf),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *ReferenceType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expReferenceType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding ReferenceType: %v", err)
@@ -661,7 +667,7 @@ func (obj *ReferenceType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 	return nil
 }
 
-func (obj *ReferenceType) mapXMLValue(s string) error {
+func (obj *expReferenceType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToReferenceType[s]; !ok {
 		return fmt.Errorf("unrecognized ReferenceType value %v", s)
@@ -670,12 +676,12 @@ func (obj *ReferenceType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *ReferenceType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expReferenceType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj ReferenceType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expReferenceType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genReferenceTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized ReferenceType value %v", obj)
@@ -684,7 +690,7 @@ func (obj ReferenceType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj ReferenceType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expReferenceType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genReferenceTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized ReferenceType %v", obj)
@@ -692,18 +698,18 @@ func (obj ReferenceType) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToReferenceType = map[string]ReferenceType{
-	"external": ReferenceExternal,
-	"self":     ReferenceSelf,
+var genJSONStrToReferenceType = map[string]expReferenceType{
+	"external": expReferenceType(ReferenceExternal),
+	"self":     expReferenceType(ReferenceSelf),
 }
 
-var genReferenceTypeToJSONStr = map[ReferenceType]string{
-	ReferenceExternal: "external",
-	ReferenceSelf:     "self",
+var genReferenceTypeToJSONStr = map[expReferenceType]string{
+	expReferenceType(ReferenceExternal): "external",
+	expReferenceType(ReferenceSelf):     "self",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *ReferenceType) UnmarshalJSON(data []byte) error {
+func (obj *expReferenceType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToReferenceType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized ReferenceType value %v", string(data))
@@ -712,7 +718,7 @@ func (obj *ReferenceType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj ReferenceType) MarshalJSON() ([]byte, error) {
+func (obj expReferenceType) MarshalJSON() ([]byte, error) {
 	s, ok := genReferenceTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized ReferenceType value %v", obj)
@@ -720,7 +726,7 @@ func (obj ReferenceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj ReferenceType) check(val *Validator) {
+func (obj ReferenceType) check(val *validator) {
 	if obj < 0 || obj >= maxReferenceType {
 		val.err(fmt.Sprintf("unrecognized ReferenceType %v", obj))
 	}
@@ -730,8 +736,9 @@ func (obj ReferenceType) check(val *Validator) {
 * Generated type NoteType
 *******************************************************************************/
 
-// NoteType enuemrates the different types of Notes.
+// NoteType enumerates the different types of Notes.
 type NoteType int
+type expNoteType NoteType
 
 // Values for NoteType
 const (
@@ -746,28 +753,28 @@ const (
 	maxNoteType
 )
 
-var genNoteTypeToXMLStr = map[NoteType]string{
-	NoteDescription:     "Description",
-	NoteDetails:         "Details",
-	NoteFAQ:             "FAQ",
-	NoteGeneral:         "General",
-	NoteLegalDisclaimer: "Legal Disclaimer",
-	NoteOther:           "Other",
-	NoteSummary:         "Summary",
+var genNoteTypeToXMLStr = map[expNoteType]string{
+	expNoteType(NoteDescription):     "Description",
+	expNoteType(NoteDetails):         "Details",
+	expNoteType(NoteFAQ):             "FAQ",
+	expNoteType(NoteGeneral):         "General",
+	expNoteType(NoteLegalDisclaimer): "Legal Disclaimer",
+	expNoteType(NoteOther):           "Other",
+	expNoteType(NoteSummary):         "Summary",
 }
 
-var genXMLStrToNoteType = map[string]NoteType{
-	"Description":      NoteDescription,
-	"Details":          NoteDetails,
-	"FAQ":              NoteFAQ,
-	"General":          NoteGeneral,
-	"Legal Disclaimer": NoteLegalDisclaimer,
-	"Other":            NoteOther,
-	"Summary":          NoteSummary,
+var genXMLStrToNoteType = map[string]expNoteType{
+	"Description":      expNoteType(NoteDescription),
+	"Details":          expNoteType(NoteDetails),
+	"FAQ":              expNoteType(NoteFAQ),
+	"General":          expNoteType(NoteGeneral),
+	"Legal Disclaimer": expNoteType(NoteLegalDisclaimer),
+	"Other":            expNoteType(NoteOther),
+	"Summary":          expNoteType(NoteSummary),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *NoteType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expNoteType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding NoteType: %v", err)
@@ -779,7 +786,7 @@ func (obj *NoteType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 	return nil
 }
 
-func (obj *NoteType) mapXMLValue(s string) error {
+func (obj *expNoteType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToNoteType[s]; !ok {
 		return fmt.Errorf("unrecognized NoteType value %v", s)
@@ -788,12 +795,12 @@ func (obj *NoteType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *NoteType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expNoteType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj NoteType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expNoteType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genNoteTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized NoteType value %v", obj)
@@ -802,7 +809,7 @@ func (obj NoteType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj NoteType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expNoteType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genNoteTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized NoteType %v", obj)
@@ -810,28 +817,28 @@ func (obj NoteType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToNoteType = map[string]NoteType{
-	"description":      NoteDescription,
-	"details":          NoteDetails,
-	"faq":              NoteFAQ,
-	"general":          NoteGeneral,
-	"legal_disclaimer": NoteLegalDisclaimer,
-	"other":            NoteOther,
-	"summary":          NoteSummary,
+var genJSONStrToNoteType = map[string]expNoteType{
+	"description":      expNoteType(NoteDescription),
+	"details":          expNoteType(NoteDetails),
+	"faq":              expNoteType(NoteFAQ),
+	"general":          expNoteType(NoteGeneral),
+	"legal_disclaimer": expNoteType(NoteLegalDisclaimer),
+	"other":            expNoteType(NoteOther),
+	"summary":          expNoteType(NoteSummary),
 }
 
-var genNoteTypeToJSONStr = map[NoteType]string{
-	NoteDescription:     "description",
-	NoteDetails:         "details",
-	NoteFAQ:             "faq",
-	NoteGeneral:         "general",
-	NoteLegalDisclaimer: "legal_disclaimer",
-	NoteOther:           "other",
-	NoteSummary:         "summary",
+var genNoteTypeToJSONStr = map[expNoteType]string{
+	expNoteType(NoteDescription):     "description",
+	expNoteType(NoteDetails):         "details",
+	expNoteType(NoteFAQ):             "faq",
+	expNoteType(NoteGeneral):         "general",
+	expNoteType(NoteLegalDisclaimer): "legal_disclaimer",
+	expNoteType(NoteOther):           "other",
+	expNoteType(NoteSummary):         "summary",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *NoteType) UnmarshalJSON(data []byte) error {
+func (obj *expNoteType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToNoteType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized NoteType value %v", string(data))
@@ -840,7 +847,7 @@ func (obj *NoteType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj NoteType) MarshalJSON() ([]byte, error) {
+func (obj expNoteType) MarshalJSON() ([]byte, error) {
 	s, ok := genNoteTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized NoteType value %v", obj)
@@ -848,7 +855,7 @@ func (obj NoteType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj NoteType) check(val *Validator) {
+func (obj NoteType) check(val *validator) {
 	if obj < 0 || obj >= maxNoteType {
 		val.err(fmt.Sprintf("unrecognized NoteType %v", obj))
 	}
@@ -860,6 +867,7 @@ func (obj NoteType) check(val *Validator) {
 
 // PublisherType enumerates the different publishers of vulnerabilities.
 type PublisherType int
+type expPublisherType PublisherType
 
 // Values for PublisherType
 const (
@@ -872,24 +880,24 @@ const (
 	maxPublisherType
 )
 
-var genPublisherTypeToXMLStr = map[PublisherType]string{
-	PubTypeVendor:      "Vendor",
-	PubTypeDiscoverer:  "Discoverer",
-	PubTypeCoordinator: "Coordinator",
-	PubTypeUser:        "User",
-	PubTypeOther:       "Other",
+var genPublisherTypeToXMLStr = map[expPublisherType]string{
+	expPublisherType(PubTypeVendor):      "Vendor",
+	expPublisherType(PubTypeDiscoverer):  "Discoverer",
+	expPublisherType(PubTypeCoordinator): "Coordinator",
+	expPublisherType(PubTypeUser):        "User",
+	expPublisherType(PubTypeOther):       "Other",
 }
 
-var genXMLStrToPublisherType = map[string]PublisherType{
-	"Vendor":      PubTypeVendor,
-	"Discoverer":  PubTypeDiscoverer,
-	"Coordinator": PubTypeCoordinator,
-	"User":        PubTypeUser,
-	"Other":       PubTypeOther,
+var genXMLStrToPublisherType = map[string]expPublisherType{
+	"Vendor":      expPublisherType(PubTypeVendor),
+	"Discoverer":  expPublisherType(PubTypeDiscoverer),
+	"Coordinator": expPublisherType(PubTypeCoordinator),
+	"User":        expPublisherType(PubTypeUser),
+	"Other":       expPublisherType(PubTypeOther),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *PublisherType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expPublisherType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding PublisherType: %v", err)
@@ -901,7 +909,7 @@ func (obj *PublisherType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) e
 	return nil
 }
 
-func (obj *PublisherType) mapXMLValue(s string) error {
+func (obj *expPublisherType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToPublisherType[s]; !ok {
 		return fmt.Errorf("unrecognized PublisherType value %v", s)
@@ -910,12 +918,12 @@ func (obj *PublisherType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *PublisherType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expPublisherType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj PublisherType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expPublisherType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genPublisherTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized PublisherType value %v", obj)
@@ -924,7 +932,7 @@ func (obj PublisherType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj PublisherType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expPublisherType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genPublisherTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized PublisherType %v", obj)
@@ -932,24 +940,24 @@ func (obj PublisherType) MarshalXML(e *xml.Encoder, start xml.StartElement) erro
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToPublisherType = map[string]PublisherType{
-	"vendor":      PubTypeVendor,
-	"discoverer":  PubTypeDiscoverer,
-	"coordinator": PubTypeCoordinator,
-	"user":        PubTypeUser,
-	"other":       PubTypeOther,
+var genJSONStrToPublisherType = map[string]expPublisherType{
+	"vendor":      expPublisherType(PubTypeVendor),
+	"discoverer":  expPublisherType(PubTypeDiscoverer),
+	"coordinator": expPublisherType(PubTypeCoordinator),
+	"user":        expPublisherType(PubTypeUser),
+	"other":       expPublisherType(PubTypeOther),
 }
 
-var genPublisherTypeToJSONStr = map[PublisherType]string{
-	PubTypeVendor:      "vendor",
-	PubTypeDiscoverer:  "discoverer",
-	PubTypeCoordinator: "coordinator",
-	PubTypeUser:        "user",
-	PubTypeOther:       "other",
+var genPublisherTypeToJSONStr = map[expPublisherType]string{
+	expPublisherType(PubTypeVendor):      "vendor",
+	expPublisherType(PubTypeDiscoverer):  "discoverer",
+	expPublisherType(PubTypeCoordinator): "coordinator",
+	expPublisherType(PubTypeUser):        "user",
+	expPublisherType(PubTypeOther):       "other",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *PublisherType) UnmarshalJSON(data []byte) error {
+func (obj *expPublisherType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToPublisherType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized PublisherType value %v", string(data))
@@ -958,7 +966,7 @@ func (obj *PublisherType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj PublisherType) MarshalJSON() ([]byte, error) {
+func (obj expPublisherType) MarshalJSON() ([]byte, error) {
 	s, ok := genPublisherTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized PublisherType value %v", obj)
@@ -966,7 +974,7 @@ func (obj PublisherType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj PublisherType) check(val *Validator) {
+func (obj PublisherType) check(val *validator) {
 	if obj < 0 || obj >= maxPublisherType {
 		val.err(fmt.Sprintf("unrecognized PublisherType %v", obj))
 	}
@@ -978,6 +986,7 @@ func (obj PublisherType) check(val *Validator) {
 
 // BranchType captures the type of branch in the product tree.
 type BranchType int
+type expBranchType BranchType
 
 // Values for BranchType
 const (
@@ -998,40 +1007,40 @@ const (
 	maxBranchType
 )
 
-var genBranchTypeToXMLStr = map[BranchType]string{
-	BranchVendor:         "Vendor",
-	BranchProductFamily:  "Product Family",
-	BranchProductName:    "Product Name",
-	BranchProductVersion: "Product Version",
-	BranchPatchLevel:     "Patch Level",
-	BranchServicePack:    "Service Pack",
-	BranchArchitecture:   "Architecture",
-	BranchLanguage:       "Language",
-	BranchLegacy:         "Legacy",
-	BranchSpecification:  "Specification",
-	BranchHostName:       "Host Name",
-	BranchRealm:          "Realm",
-	BranchResource:       "Resource",
+var genBranchTypeToXMLStr = map[expBranchType]string{
+	expBranchType(BranchVendor):         "Vendor",
+	expBranchType(BranchProductFamily):  "Product Family",
+	expBranchType(BranchProductName):    "Product Name",
+	expBranchType(BranchProductVersion): "Product Version",
+	expBranchType(BranchPatchLevel):     "Patch Level",
+	expBranchType(BranchServicePack):    "Service Pack",
+	expBranchType(BranchArchitecture):   "Architecture",
+	expBranchType(BranchLanguage):       "Language",
+	expBranchType(BranchLegacy):         "Legacy",
+	expBranchType(BranchSpecification):  "Specification",
+	expBranchType(BranchHostName):       "Host Name",
+	expBranchType(BranchRealm):          "Realm",
+	expBranchType(BranchResource):       "Resource",
 }
 
-var genXMLStrToBranchType = map[string]BranchType{
-	"Vendor":          BranchVendor,
-	"Product Family":  BranchProductFamily,
-	"Product Name":    BranchProductName,
-	"Product Version": BranchProductVersion,
-	"Patch Level":     BranchPatchLevel,
-	"Service Pack":    BranchServicePack,
-	"Architecture":    BranchArchitecture,
-	"Language":        BranchLanguage,
-	"Legacy":          BranchLegacy,
-	"Specification":   BranchSpecification,
-	"Host Name":       BranchHostName,
-	"Realm":           BranchRealm,
-	"Resource":        BranchResource,
+var genXMLStrToBranchType = map[string]expBranchType{
+	"Vendor":          expBranchType(BranchVendor),
+	"Product Family":  expBranchType(BranchProductFamily),
+	"Product Name":    expBranchType(BranchProductName),
+	"Product Version": expBranchType(BranchProductVersion),
+	"Patch Level":     expBranchType(BranchPatchLevel),
+	"Service Pack":    expBranchType(BranchServicePack),
+	"Architecture":    expBranchType(BranchArchitecture),
+	"Language":        expBranchType(BranchLanguage),
+	"Legacy":          expBranchType(BranchLegacy),
+	"Specification":   expBranchType(BranchSpecification),
+	"Host Name":       expBranchType(BranchHostName),
+	"Realm":           expBranchType(BranchRealm),
+	"Resource":        expBranchType(BranchResource),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *BranchType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expBranchType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding BranchType: %v", err)
@@ -1043,7 +1052,7 @@ func (obj *BranchType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 	return nil
 }
 
-func (obj *BranchType) mapXMLValue(s string) error {
+func (obj *expBranchType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToBranchType[s]; !ok {
 		return fmt.Errorf("unrecognized BranchType value %v", s)
@@ -1052,12 +1061,12 @@ func (obj *BranchType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *BranchType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expBranchType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj BranchType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expBranchType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genBranchTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized BranchType value %v", obj)
@@ -1066,7 +1075,7 @@ func (obj BranchType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj BranchType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expBranchType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genBranchTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized BranchType %v", obj)
@@ -1074,40 +1083,40 @@ func (obj BranchType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToBranchType = map[string]BranchType{
-	"vendor":          BranchVendor,
-	"product_family":  BranchProductFamily,
-	"product_name":    BranchProductName,
-	"product_version": BranchProductVersion,
-	"patch_level":     BranchPatchLevel,
-	"service_pack":    BranchServicePack,
-	"architecture":    BranchArchitecture,
-	"language":        BranchLanguage,
-	"legacy":          BranchLegacy,
-	"specification":   BranchSpecification,
-	"host_name":       BranchHostName,
-	"realm":           BranchRealm,
-	"resource":        BranchResource,
+var genJSONStrToBranchType = map[string]expBranchType{
+	"vendor":          expBranchType(BranchVendor),
+	"product_family":  expBranchType(BranchProductFamily),
+	"product_name":    expBranchType(BranchProductName),
+	"product_version": expBranchType(BranchProductVersion),
+	"patch_level":     expBranchType(BranchPatchLevel),
+	"service_pack":    expBranchType(BranchServicePack),
+	"architecture":    expBranchType(BranchArchitecture),
+	"language":        expBranchType(BranchLanguage),
+	"legacy":          expBranchType(BranchLegacy),
+	"specification":   expBranchType(BranchSpecification),
+	"host_name":       expBranchType(BranchHostName),
+	"realm":           expBranchType(BranchRealm),
+	"resource":        expBranchType(BranchResource),
 }
 
-var genBranchTypeToJSONStr = map[BranchType]string{
-	BranchVendor:         "vendor",
-	BranchProductFamily:  "product_family",
-	BranchProductName:    "product_name",
-	BranchProductVersion: "product_version",
-	BranchPatchLevel:     "patch_level",
-	BranchServicePack:    "service_pack",
-	BranchArchitecture:   "architecture",
-	BranchLanguage:       "language",
-	BranchLegacy:         "legacy",
-	BranchSpecification:  "specification",
-	BranchHostName:       "host_name",
-	BranchRealm:          "realm",
-	BranchResource:       "resource",
+var genBranchTypeToJSONStr = map[expBranchType]string{
+	expBranchType(BranchVendor):         "vendor",
+	expBranchType(BranchProductFamily):  "product_family",
+	expBranchType(BranchProductName):    "product_name",
+	expBranchType(BranchProductVersion): "product_version",
+	expBranchType(BranchPatchLevel):     "patch_level",
+	expBranchType(BranchServicePack):    "service_pack",
+	expBranchType(BranchArchitecture):   "architecture",
+	expBranchType(BranchLanguage):       "language",
+	expBranchType(BranchLegacy):         "legacy",
+	expBranchType(BranchSpecification):  "specification",
+	expBranchType(BranchHostName):       "host_name",
+	expBranchType(BranchRealm):          "realm",
+	expBranchType(BranchResource):       "resource",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *BranchType) UnmarshalJSON(data []byte) error {
+func (obj *expBranchType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToBranchType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized BranchType value %v", string(data))
@@ -1116,7 +1125,7 @@ func (obj *BranchType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj BranchType) MarshalJSON() ([]byte, error) {
+func (obj expBranchType) MarshalJSON() ([]byte, error) {
 	s, ok := genBranchTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized BranchType value %v", obj)
@@ -1124,7 +1133,7 @@ func (obj BranchType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj BranchType) check(val *Validator) {
+func (obj BranchType) check(val *validator) {
 	if obj < 0 || obj >= maxBranchType {
 		val.err(fmt.Sprintf("unrecognized BranchType %v", obj))
 	}
@@ -1136,6 +1145,7 @@ func (obj BranchType) check(val *Validator) {
 
 // ThreatType captures the type of threat.
 type ThreatType int
+type expThreatType ThreatType
 
 // Values for ThreatType
 const (
@@ -1146,20 +1156,20 @@ const (
 	maxThreatType
 )
 
-var genThreatTypeToXMLStr = map[ThreatType]string{
-	ThreatImpact:        "Impact",
-	ThreatExploitStatus: "Exploit Status",
-	ThreatTargetSet:     "Target Set",
+var genThreatTypeToXMLStr = map[expThreatType]string{
+	expThreatType(ThreatImpact):        "Impact",
+	expThreatType(ThreatExploitStatus): "Exploit Status",
+	expThreatType(ThreatTargetSet):     "Target Set",
 }
 
-var genXMLStrToThreatType = map[string]ThreatType{
-	"Impact":         ThreatImpact,
-	"Exploit Status": ThreatExploitStatus,
-	"Target Set":     ThreatTargetSet,
+var genXMLStrToThreatType = map[string]expThreatType{
+	"Impact":         expThreatType(ThreatImpact),
+	"Exploit Status": expThreatType(ThreatExploitStatus),
+	"Target Set":     expThreatType(ThreatTargetSet),
 }
 
 // UnmarshalXML implemented to support reading from XML.
-func (obj *ThreatType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (obj *expThreatType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	s, err := xmlElemAsString(d, start)
 	if err != nil {
 		return fmt.Errorf("problem decoding ThreatType: %v", err)
@@ -1171,7 +1181,7 @@ func (obj *ThreatType) UnmarshalXML(d *xml.Decoder, start xml.StartElement) erro
 	return nil
 }
 
-func (obj *ThreatType) mapXMLValue(s string) error {
+func (obj *expThreatType) mapXMLValue(s string) error {
 	var ok bool
 	if *obj, ok = genXMLStrToThreatType[s]; !ok {
 		return fmt.Errorf("unrecognized ThreatType value %v", s)
@@ -1180,12 +1190,12 @@ func (obj *ThreatType) mapXMLValue(s string) error {
 }
 
 // UnmarshalXMLAttr implemented to support reading from XML
-func (obj *ThreatType) UnmarshalXMLAttr(attr xml.Attr) error {
+func (obj *expThreatType) UnmarshalXMLAttr(attr xml.Attr) error {
 	return obj.mapXMLValue(attr.Value)
 }
 
 // MarshalXMLAttr implemented to support writing to XML.
-func (obj ThreatType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
+func (obj expThreatType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	s, ok := genThreatTypeToXMLStr[obj]
 	if !ok {
 		return xml.Attr{}, fmt.Errorf("unrecognized ThreatType value %v", obj)
@@ -1194,7 +1204,7 @@ func (obj ThreatType) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 }
 
 // MarshalXML implemented to support writing to XML.
-func (obj ThreatType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+func (obj expThreatType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	s, ok := genThreatTypeToXMLStr[obj]
 	if !ok {
 		return fmt.Errorf("unrecognized ThreatType %v", obj)
@@ -1202,20 +1212,20 @@ func (obj ThreatType) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return e.EncodeElement(s, start)
 }
 
-var genJSONStrToThreatType = map[string]ThreatType{
-	"impact":         ThreatImpact,
-	"exploit_status": ThreatExploitStatus,
-	"target_set":     ThreatTargetSet,
+var genJSONStrToThreatType = map[string]expThreatType{
+	"impact":         expThreatType(ThreatImpact),
+	"exploit_status": expThreatType(ThreatExploitStatus),
+	"target_set":     expThreatType(ThreatTargetSet),
 }
 
-var genThreatTypeToJSONStr = map[ThreatType]string{
-	ThreatImpact:        "impact",
-	ThreatExploitStatus: "exploit_status",
-	ThreatTargetSet:     "target_set",
+var genThreatTypeToJSONStr = map[expThreatType]string{
+	expThreatType(ThreatImpact):        "impact",
+	expThreatType(ThreatExploitStatus): "exploit_status",
+	expThreatType(ThreatTargetSet):     "target_set",
 }
 
 // UnmarshalJSON implemented to support writing to XML.
-func (obj *ThreatType) UnmarshalJSON(data []byte) error {
+func (obj *expThreatType) UnmarshalJSON(data []byte) error {
 	var ok bool
 	if *obj, ok = genJSONStrToThreatType[noQuotes(data)]; !ok {
 		return fmt.Errorf("unrecognized ThreatType value %v", string(data))
@@ -1224,7 +1234,7 @@ func (obj *ThreatType) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalJSON implemented to support writing to XML.
-func (obj ThreatType) MarshalJSON() ([]byte, error) {
+func (obj expThreatType) MarshalJSON() ([]byte, error) {
 	s, ok := genThreatTypeToJSONStr[obj]
 	if !ok {
 		return nil, fmt.Errorf("unrecognized ThreatType value %v", obj)
@@ -1232,7 +1242,7 @@ func (obj ThreatType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (obj ThreatType) check(val *Validator) {
+func (obj ThreatType) check(val *validator) {
 	if obj < 0 || obj >= maxThreatType {
 		val.err(fmt.Sprintf("unrecognized ThreatType %v", obj))
 	}
