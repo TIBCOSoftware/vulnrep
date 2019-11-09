@@ -94,10 +94,6 @@ func toReportXML(r Report) reportV12 {
 	for _, ack := range r.Meta.Acknowledgments {
 		acks = append(acks, acknowledgmentExp(ack))
 	}
-	vulns := make([]vulnerabilityXML, 0, len(r.Vulnerabilities))
-	for _, vuln := range r.Vulnerabilities {
-		vulns = append(vulns, toVulnerabilityXML(vuln))
-	}
 
 	return reportV12{
 		Title:             r.Meta.Title,
@@ -110,7 +106,7 @@ func toReportXML(r Report) reportV12 {
 		References:        toReferenceExps(r.Meta.References),
 		Acknowledgments:   acks,
 		ProductTree:       toProductTreeXML(r.ProductTree),
-		Vulnerabilities:   vulns}
+		Vulnerabilities:   toVulnerabilityXMLs(r.Vulnerabilities)}
 }
 
 // PublisherXML captures publisher information from a CVRF document
@@ -255,12 +251,13 @@ func toRevisionExps(revs []Revision) []revisionExp {
 	return result
 }
 
-// noteXML captures the document level notes of a CVRF document
+// noteXML captures the document level notes of a CVRF document. Note that
+// in the JSON format, the Ordinal field is not read/written.
 type noteExp struct {
 	Title    string      `xml:"Title,attr,omitempty" json:"title,omitempty"`
 	Audience string      `xml:"Audience,attr,omitempty" json:"audience,omitempty"`
 	Type     expNoteType `xml:"Type,attr" json:"type"`
-	Ordinal  int         `xml:"Ordinal,attr" json:"ordinal"`
+	Ordinal  int         `xml:"Ordinal,attr" json:"-"`
 	Text     string      `xml:",chardata" json:"text"`
 }
 
@@ -271,20 +268,23 @@ func asNotes(notes []noteExp) []Note {
 			Title:    note.Title,
 			Audience: note.Audience,
 			Type:     NoteType(note.Type),
-			Ordinal:  note.Ordinal,
 			Text:     note.Text})
 	}
 	return result
 }
 
+// toNotesXML creates an exportable version of a Note. In the XML format, the
+// specification includes an "Ordinal" value which is supposed to be monotonically
+// increasing from "1". This routine simply populates based on the index of the
+// note.
 func toNotesXML(notes []Note) []noteExp {
 	result := make([]noteExp, 0, len(notes))
-	for _, note := range notes {
+	for idx, note := range notes {
 		result = append(result, noteExp{
 			Title:    note.Title,
 			Audience: note.Audience,
 			Type:     expNoteType(note.Type),
-			Ordinal:  note.Ordinal,
+			Ordinal:  idx + 1,
 			Text:     note.Text})
 	}
 	return result
@@ -625,24 +625,28 @@ type vulnerabilityXML struct {
 }
 
 //nolint: dupl
-func toVulnerabilityXML(v Vulnerability) vulnerabilityXML {
+func toVulnerabilityXMLs(vulns []Vulnerability) []vulnerabilityXML {
 
-	return vulnerabilityXML{
-		Ordinal:         v.Ordinal,
-		Title:           v.Title,
-		ID:              toVulnIDExp(v.ID),
-		Notes:           toNotesXML(v.Notes),
-		DiscoveryDate:   timeToTimePtr(v.DiscoveryDate),
-		ReleaseDate:     timeToTimePtr(v.ReleaseDate),
-		Involvements:    toInvolvementExps(v.Involvements),
-		CVE:             v.CVE,
-		CWE:             toCWEExp(v.CWE),
-		Statuses:        toStatusXML(v.Statuses),
-		Threats:         toThreatExps(v.Threats),
-		CVSSScoreSets:   toCVSSScoreSetsXML(v.CVSS),
-		Remediations:    toRemediationExps(v.Remediations),
-		References:      toReferenceExps(v.References),
-		Acknowledgments: toAcknowledgmentExps(v.Acknowledgments)}
+	result := make([]vulnerabilityXML, 0, len(vulns))
+	for idx, v := range vulns {
+		result = append(result, vulnerabilityXML{
+			Ordinal:         idx + 1,
+			Title:           v.Title,
+			ID:              toVulnIDExp(v.ID),
+			Notes:           toNotesXML(v.Notes),
+			DiscoveryDate:   timeToTimePtr(v.DiscoveryDate),
+			ReleaseDate:     timeToTimePtr(v.ReleaseDate),
+			Involvements:    toInvolvementExps(v.Involvements),
+			CVE:             v.CVE,
+			CWE:             toCWEExp(v.CWE),
+			Statuses:        toStatusXML(v.Statuses),
+			Threats:         toThreatExps(v.Threats),
+			CVSSScoreSets:   toCVSSScoreSetsXML(v.CVSS),
+			Remediations:    toRemediationExps(v.Remediations),
+			References:      toReferenceExps(v.References),
+			Acknowledgments: toAcknowledgmentExps(v.Acknowledgments)})
+	}
+	return result
 }
 
 func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
@@ -653,7 +657,6 @@ func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
 	}
 
 	return Vulnerability{
-		Ordinal:         vx.Ordinal,
 		Title:           vx.Title,
 		ID:              vx.ID.asVulnID(),
 		Notes:           asNotes(vx.Notes),
@@ -781,8 +784,8 @@ type threatExp struct {
 	Type        expThreatType `xml:"Type,attr" json:"type"`
 	Description string        `xml:"Description" json:"description"`
 	Date        *time.Time    `xml:"Date,attr,omitempty" json:"date,omitempty"`
-	ProductIDs  []ProductID   `xml:"ProductID,omitempty" json:"products,omitempty"`
-	GroupIDs    []GroupID     `xml:"GroupID,omitempty" json:"groups,omitempty"`
+	ProductIDs  []ProductID   `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
+	GroupIDs    []GroupID     `xml:"GroupID,omitempty" json:"group_ids,omitempty"`
 }
 
 func toThreatExp(th Threat) threatExp {
@@ -823,7 +826,7 @@ func (tx threatExp) asThreat(ctx *loadCtx) Threat {
 // CVSSScoreSetsXML captures the XML representation of possible CVSS scores,
 // either v2 or v3.
 type cvssScoreSetsXML struct {
-	ScoreSetV2 []scoreSetV2XML `xml:"ScoreSetV2,omitempty"`
+	ScoreSetV2 []scoreSetV2Exp `xml:"ScoreSetV2,omitempty"`
 	ScoreSetV3 []scoreSetV3Exp `xml:"ScoreSetV3,omitempty"`
 }
 
@@ -831,9 +834,9 @@ func toCVSSScoreSetsXML(ss *CVSSScoreSets) *cvssScoreSetsXML {
 	if ss == nil {
 		return nil
 	}
-	v2scores := make([]scoreSetV2XML, 0, len(ss.V2))
+	v2scores := make([]scoreSetV2Exp, 0, len(ss.V2))
 	for _, sv2 := range ss.V2 {
-		v2scores = append(v2scores, scoreSetV2XML(toScoreSetV3Exp(sv2)))
+		v2scores = append(v2scores, scoreSetV2Exp(toScoreSetV3Exp(sv2)))
 	}
 	result := cvssScoreSetsXML{
 		ScoreSetV2: v2scores,
@@ -845,41 +848,26 @@ func (css *cvssScoreSetsXML) asScoreSet(ctx *loadCtx) *CVSSScoreSets {
 	if css == nil {
 		return nil
 	}
-
-	v2s := make([]ScoreSet, 0, len(css.ScoreSetV2))
-	for _, v2 := range css.ScoreSetV2 {
-		v2s = append(v2s, v2.asScoreSet(ctx))
-	}
-
-	v3s := make([]ScoreSet, 0, len(css.ScoreSetV3))
-	for _, v3 := range css.ScoreSetV3 {
-		v3s = append(v3s, v3.asScoreSet(ctx))
-	}
-
 	return &CVSSScoreSets{
-		V2: v2s,
-		V3: v3s}
+		V2: asScoreSetsV2(ctx, css.ScoreSetV2),
+		V3: asScoreSets(ctx, css.ScoreSetV3)}
 }
 
 // scoreSetV2XML captures the XML representation of the CVSS v3 scoring.
-type scoreSetV2XML struct {
-	BaseScore          string      `xml:"BaseScoreV2"`
-	TemporalScore      string      `xml:"TemporalScoreV2,omitempty"`
-	EnvironmentalScore string      `xml:"EnvironmentalScoreV2,omitempty"`
-	Vector             string      `xml:"VectorV2,omitempty"`
-	ProductIDs         []ProductID `xml:"ProductID,omitempty"`
-}
-
-func (ssx scoreSetV2XML) asScoreSet(ctx *loadCtx) ScoreSet {
-	return scoreSetV3Exp(ssx).asScoreSet(ctx)
+type scoreSetV2Exp struct {
+	BaseScore          string      `xml:"BaseScoreV2" json:"base_score_v2"`
+	TemporalScore      string      `xml:"TemporalScoreV2,omitempty" json:"temporal_score_v2,omitempty"`
+	EnvironmentalScore string      `xml:"EnvironmentalScoreV2,omitempty" json:"environmental_score_v2,omitempty"`
+	Vector             string      `xml:"VectorV2,omitempty" json:"vector_v2,omitempty"`
+	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
 }
 
 // scoreSetV3XML captures the XML representation of the CVSS v3 scoring.
 type scoreSetV3Exp struct {
-	BaseScore          string      `xml:"BaseScoreV3" json:"base_score"`
-	TemporalScore      string      `xml:"TemporalScoreV3,omitempty" json:"temporal_score,omitempty"`
-	EnvironmentalScore string      `xml:"EnvironmentalScoreV3,omitempty" json:"environmental_score,omitempty"`
-	Vector             string      `xml:"VectorV3,omitempty" json:"vector,omitempty"`
+	BaseScore          string      `xml:"BaseScoreV3" json:"base_score_v3"`
+	TemporalScore      string      `xml:"TemporalScoreV3,omitempty" json:"temporal_score_v3,omitempty"`
+	EnvironmentalScore string      `xml:"EnvironmentalScoreV3,omitempty" json:"environmental_score_v3,omitempty"`
+	Vector             string      `xml:"VectorV3,omitempty" json:"vector_v3,omitempty"`
 	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
 }
 
@@ -900,19 +888,42 @@ func toScoreSetV3Exps(ss []ScoreSet) []scoreSetV3Exp {
 	return result
 }
 
-func (ssx scoreSetV3Exp) asScoreSet(ctx *loadCtx) ScoreSet {
-	return ScoreSet{
-		BaseScore:          ssx.BaseScore,
-		TemporalScore:      ssx.TemporalScore,
-		EnvironmentalScore: ssx.EnvironmentalScore,
-		Vector:             ssx.Vector,
-		Products:           ctx.asProducts(ssx.ProductIDs, "cvss score")}
+func toScoreSetV2Exps(ss []ScoreSet) []scoreSetV2Exp {
+	result := make([]scoreSetV2Exp, 0, len(ss))
+	for _, score := range ss {
+		result = append(result, scoreSetV2Exp{
+			BaseScore:          score.BaseScore,
+			TemporalScore:      score.TemporalScore,
+			EnvironmentalScore: score.EnvironmentalScore,
+			Vector:             score.Vector,
+			ProductIDs:         toProductIDs(score.Products)})
+	}
+	return result
+}
+
+func asScoreSetsV2(ctx *loadCtx, v2scores []scoreSetV2Exp) []ScoreSet {
+	scores := make([]ScoreSet, 0, len(v2scores))
+	for _, v2 := range v2scores {
+		scores = append(scores, ScoreSet{
+			BaseScore:          v2.BaseScore,
+			TemporalScore:      v2.TemporalScore,
+			EnvironmentalScore: v2.EnvironmentalScore,
+			Vector:             v2.Vector,
+			Products:           ctx.asProducts(v2.ProductIDs, "cvss score")})
+	}
+
+	return scores
 }
 
 func asScoreSets(ctx *loadCtx, scores []scoreSetV3Exp) []ScoreSet {
 	v3s := make([]ScoreSet, 0, len(scores))
 	for _, v3 := range scores {
-		v3s = append(v3s, v3.asScoreSet(ctx))
+		v3s = append(v3s, ScoreSet{
+			BaseScore:          v3.BaseScore,
+			TemporalScore:      v3.TemporalScore,
+			EnvironmentalScore: v3.EnvironmentalScore,
+			Vector:             v3.Vector,
+			Products:           ctx.asProducts(v3.ProductIDs, "cvss score")})
 	}
 
 	return v3s
@@ -923,10 +934,10 @@ type remediationExp struct {
 	Type        expRemedyType `xml:"Type,attr" json:"type"`
 	Date        *time.Time    `xml:"Date,attr,omitempty" json:"date,omitempty"`
 	Description string        `xml:"Description" json:"description"`
-	Entitlement []string      `xml:"Entitlement,omitempty" json:"entitlement,omitempty"`
+	Entitlement []string      `xml:"Entitlement,omitempty" json:"entitlements,omitempty"`
 	URL         string        `xml:"URL,omitempty" json:"url,omitempty"`
-	Products    []ProductID   `xml:"ProductID,omitempty" json:"products,omitempty"`
-	Groups      []GroupID     `xml:"GroupID,omitempty" json:"groups,omitempty"`
+	Products    []ProductID   `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
+	Groups      []GroupID     `xml:"GroupID,omitempty" json:"group_ids,omitempty"`
 }
 
 func asRemediations(ctx *loadCtx, remediations []remediationExp) []Remediation {

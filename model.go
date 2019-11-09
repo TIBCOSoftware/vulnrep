@@ -213,14 +213,6 @@ func (rm *Meta) check(val *validator) {
 	rm.Publisher.check(val)
 	rm.Tracking.check(val)
 
-	// verify notes have valid ordinals.
-	ordinalsFound := make(map[int]bool)
-	for _, n := range rm.Notes {
-		if ordinalsFound[n.Ordinal] {
-			val.err(fmt.Sprintf("repeated note ordinal %v", n.Ordinal))
-		}
-		ordinalsFound[n.Ordinal] = true
-	}
 	// check aggregate severity
 	if rm.AggregateSeverity != nil {
 		rm.AggregateSeverity.check(val)
@@ -328,7 +320,6 @@ type Note struct {
 	Title    string
 	Audience string
 	Type     NoteType
-	Ordinal  int
 	Text     string
 }
 
@@ -336,9 +327,6 @@ type Note struct {
 func (n *Note) check(val *validator) {
 	// Title, audience have no constraints
 	n.Type.check(val)
-	if n.Ordinal <= 0 {
-		val.err("invalid ordinal value")
-	}
 	val.nonEmptyStr(n.Text, "note must have text content")
 }
 
@@ -525,7 +513,6 @@ func (g Group) check(val *validator) {
 
 // Vulnerability captures the vulnerabilities in the report.
 type Vulnerability struct {
-	Ordinal         int
 	Title           string
 	ID              *VulnID
 	Notes           []Note

@@ -106,7 +106,6 @@ func toReportMetaJSON(meta Meta) reportMetaJSON {
 }
 
 type vulnerabilityJSON struct {
-	Ordinal         int                 `json:"ordinal"`
 	Title           string              `json:"title,omitempty"`
 	ID              *vulnIDExp          `json:"id,omitempty"`
 	Notes           []noteExp           `json:"notes,omitempty"`
@@ -117,7 +116,7 @@ type vulnerabilityJSON struct {
 	CWE             *cweExp             `json:"cwe,omitempty"`
 	ProductStatus   productStatusJSON   `json:"product_status"`
 	Threats         []threatExp         `json:"threats"`
-	CVSS            *cvssScoreSetsJSON  `json:"cvss_score_sets,omitempty"`
+	CVSS            *cvssScoreSetsJSON  `json:"scores,omitempty"`
 	Remediations    []remediationExp    `json:"remediations"`
 	References      []referenceExp      `json:"references"`
 	Acknowledgments []acknowledgmentExp `json:"acknowledgments"`
@@ -126,7 +125,6 @@ type vulnerabilityJSON struct {
 func (vj vulnerabilityJSON) asVulnerability(ctx *loadCtx) Vulnerability {
 
 	return Vulnerability{
-		Ordinal:         vj.Ordinal,
 		Title:           vj.Title,
 		ID:              vj.ID.asVulnID(),
 		Notes:           asNotes(vj.Notes),
@@ -146,7 +144,6 @@ func (vj vulnerabilityJSON) asVulnerability(ctx *loadCtx) Vulnerability {
 //nolint: dupl
 func toVulnerabilityJSON(v Vulnerability) vulnerabilityJSON {
 	return vulnerabilityJSON{
-		Ordinal:         v.Ordinal,
 		Title:           v.Title,
 		ID:              toVulnIDExp(v.ID),
 		Notes:           toNotesXML(v.Notes),
@@ -164,8 +161,8 @@ func toVulnerabilityJSON(v Vulnerability) vulnerabilityJSON {
 }
 
 type cvssScoreSetsJSON struct {
-	V2 []scoreSetV3Exp `json:"v2"`
-	V3 []scoreSetV3Exp `json:"v3"`
+	V2 []scoreSetV2Exp `json:"cvss_v20"`
+	V3 []scoreSetV3Exp `json:"cvss_v30"`
 }
 
 func (ss *cvssScoreSetsJSON) asScoreSet(ctx *loadCtx) *CVSSScoreSets {
@@ -173,7 +170,7 @@ func (ss *cvssScoreSetsJSON) asScoreSet(ctx *loadCtx) *CVSSScoreSets {
 		return nil
 	}
 	return &CVSSScoreSets{
-		V2: asScoreSets(ctx, ss.V2),
+		V2: asScoreSetsV2(ctx, ss.V2),
 		V3: asScoreSets(ctx, ss.V3),
 	}
 }
@@ -183,7 +180,7 @@ func toCVSSScoreSetsJSON(ss *CVSSScoreSets) *cvssScoreSetsJSON {
 		return nil
 	}
 	return &cvssScoreSetsJSON{
-		V2: toScoreSetV3Exps(ss.V2),
+		V2: toScoreSetV2Exps(ss.V2),
 		V3: toScoreSetV3Exps(ss.V3)}
 }
 
