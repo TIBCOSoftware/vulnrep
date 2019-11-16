@@ -28,6 +28,10 @@
 // check for the specific *ComplianceErr type, and introspect the contents of
 // that error.
 //
+// Note that different target formats have different validation criteria. For example,
+// the CVSS scoring vector is not required in the XML format, but due to the use
+// of CVSS JSON schema, the CVSS vector is required.
+//
 // Parsing and Serialization
 //
 // Documents are scanned for errors both when read and written. This

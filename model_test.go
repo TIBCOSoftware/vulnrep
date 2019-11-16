@@ -86,7 +86,16 @@ func TestPartialXMLRoundTrip(t *testing.T) {
 	// Note: See TestXMLRoundTrip for the merits of this test.
 	assert.EqualValues(t, orig, out.String())
 
+	// stuff a bogus vector into the document so that it validates on output.
 	var jsonOut bytes.Buffer
+	for vidx, vul := range r.Vulnerabilities {
+		for sidx, score := range vul.Scores {
+			for cvssidx := range score.CVSSScores {
+				r.Vulnerabilities[vidx].Scores[sidx].CVSSScores[cvssidx].Vector =
+					"Non-null-string-to-prevent-errors"
+			}
+		}
+	}
 	err = r.ToCSAF(&jsonOut)
 	assert.NoError(t, err)
 }
@@ -159,6 +168,6 @@ func TestChecks(t *testing.T) {
 	rep := Report{
 		Vulnerabilities: []Vulnerability{{}},
 	}
-	val := rep.check()
+	val := rep.check(targetCSAF)
 	assert.True(t, len(val.Errors) > 0)
 }

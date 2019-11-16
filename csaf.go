@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 )
 
@@ -27,7 +28,11 @@ func ParseJSON(r io.Reader) (Report, error) {
 		return emptyReport, fmt.Errorf("unable to decode report: %v", err)
 	}
 
-	return checkCompliance(jsonRep.asReport())
+	rep, err := jsonRep.asReport()
+	if err != nil {
+		return rep, err
+	}
+	return checkCompliance(rep, targetCSAF)
 }
 
 type reportJSON struct {
@@ -116,7 +121,7 @@ type vulnerabilityJSON struct {
 	CWE             *cweExp             `json:"cwe,omitempty"`
 	ProductStatus   productStatusJSON   `json:"product_status"`
 	Threats         []threatExp         `json:"threats"`
-	CVSS            *cvssScoreSetsJSON  `json:"scores,omitempty"`
+	Scores          []scoreJSON         `json:"scores,omitempty"`
 	Remediations    []remediationExp    `json:"remediations"`
 	References      []referenceExp      `json:"references"`
 	Acknowledgments []acknowledgmentExp `json:"acknowledgments"`
@@ -135,7 +140,7 @@ func (vj vulnerabilityJSON) asVulnerability(ctx *loadCtx) Vulnerability {
 		CWE:             vj.CWE.asCWE(),
 		Statuses:        vj.ProductStatus.asStatus(ctx),
 		Threats:         asThreats(ctx, vj.Threats),
-		CVSS:            vj.CVSS.asScoreSet(ctx),
+		Scores:          asScores(vj.Scores, ctx),
 		Remediations:    asRemediations(ctx, vj.Remediations),
 		References:      asReferences(vj.References),
 		Acknowledgments: asAcknowledgments(vj.Acknowledgments)}
@@ -154,10 +159,35 @@ func toVulnerabilityJSON(v Vulnerability) vulnerabilityJSON {
 		CWE:             toCWEExp(v.CWE),
 		ProductStatus:   toProductStatusesJSON(v.Statuses),
 		Threats:         toThreatExps(v.Threats),
-		CVSS:            toCVSSScoreSetsJSON(v.CVSS),
+		Scores:          toScoresJSON(v.Scores),
 		Remediations:    toRemediationExps(v.Remediations),
 		References:      toReferenceExps(v.References),
 		Acknowledgments: toAcknowledgmentExps(v.Acknowledgments)}
+}
+
+type scoreJSON struct {
+	ProductIDs []ProductID   `json:"product_ids,omitempty"`
+	CvssV20    *cvssV20Score `json:"cvss_v20,omitempty"`
+	CvssV30    *cvssV30Score `json:"cvss_v30,omitempty"`
+	CvssV31    *cvssV30Score `json:"cvss_v31,omitempty"`
+}
+
+// cvssV30Score captures the XML representation of the CVSS v3 scoring.
+type cvssV30Score struct {
+	Version            string      `json:"version"`
+	BaseScore          float64     `json:"baseScore"`
+	Vector             string      `json:"vectorString"`
+	BaseSeverity       string      `json:"baseSeverity"`
+	TemporalScore      json.Number `json:"temporalScore,omitempty"`
+	EnvironmentalScore json.Number `json:"environmentalScore,omitempty"`
+}
+
+type cvssV20Score struct {
+	Version            string      `json:"version"`
+	BaseScore          float64     `json:"baseScore"`
+	Vector             string      `json:"vectorString"`
+	TemporalScore      json.Number `json:"temporalScore,omitempty"`
+	EnvironmentalScore json.Number `json:"environmentalScore,omitempty"`
 }
 
 type cvssScoreSetsJSON struct {
@@ -165,23 +195,82 @@ type cvssScoreSetsJSON struct {
 	V3 []scoreSetV3Exp `json:"cvss_v30"`
 }
 
-func (ss *cvssScoreSetsJSON) asScoreSet(ctx *loadCtx) *CVSSScoreSets {
-	if ss == nil {
+func asScores(scores []scoreJSON, ctx *loadCtx) []Score {
+	if scores == nil {
 		return nil
 	}
-	return &CVSSScoreSets{
-		V2: asScoreSetsV2(ctx, ss.V2),
-		V3: asScoreSets(ctx, ss.V3),
+	result := make([]Score, 0, len(scores))
+	for _, score := range scores {
+		var cvsses []CVSSScore
+		if score.CvssV20 != nil {
+			cvsses = append(cvsses, CVSSScore{
+				Version:            score.CvssV20.Version,
+				BaseScore:          score.CvssV20.BaseScore,
+				Vector:             score.CvssV20.Version,
+				EnvironmentalScore: ctx.numberAsFloat(score.CvssV20.EnvironmentalScore),
+				TemporalScore:      ctx.numberAsFloat(score.CvssV20.TemporalScore),
+			})
+		}
+		result = append(result, Score{
+			Products: ctx.asProducts(score.ProductIDs, "vulnerability/scores"),
+		})
 	}
+	return result
 }
 
-func toCVSSScoreSetsJSON(ss *CVSSScoreSets) *cvssScoreSetsJSON {
-	if ss == nil {
+func cvssScoreToSeverity(score float64) string {
+	var severity string
+	if score < 4.0 {
+		severity = "LOW"
+	} else if score < 7.0 {
+		severity = "MEDIUM"
+	} else if score < 9.0 {
+		severity = "HIGH"
+	} else {
+		severity = "CRITICAL"
+	}
+	return severity
+}
+
+func cvssScoreTo3XJSON(score CVSSScore) *cvssV30Score {
+	return &cvssV30Score{
+		Version:            score.Version,
+		BaseScore:          score.BaseScore,
+		Vector:             score.Vector,
+		BaseSeverity:       cvssScoreToSeverity(score.BaseScore),
+		EnvironmentalScore: toJSONNumber(score.EnvironmentalScore),
+		TemporalScore:      toJSONNumber(score.TemporalScore)}
+}
+
+func toJSONNumber(f float64) json.Number {
+	return json.Number(strconv.FormatFloat(f, 'f', 1, 64))
+}
+
+func toScoresJSON(scores []Score) []scoreJSON {
+	if len(scores) == 0 {
 		return nil
 	}
-	return &cvssScoreSetsJSON{
-		V2: toScoreSetV2Exps(ss.V2),
-		V3: toScoreSetV3Exps(ss.V3)}
+	result := make([]scoreJSON, 0, len(scores))
+	for _, sc := range scores {
+		sj := scoreJSON{
+			ProductIDs: toProductIDs(sc.Products)}
+		for _, cvss := range sc.CVSSScores {
+			if cvss.Version == "2.0" {
+				sj.CvssV20 = &cvssV20Score{
+					Version:            "2.0",
+					BaseScore:          cvss.BaseScore,
+					Vector:             cvss.Vector,
+					EnvironmentalScore: toJSONNumber(cvss.EnvironmentalScore),
+					TemporalScore:      toJSONNumber(cvss.TemporalScore)}
+			} else if cvss.Version == "3.0" {
+				sj.CvssV30 = cvssScoreTo3XJSON(cvss)
+			} else if cvss.Version == "3.1" {
+				sj.CvssV31 = cvssScoreTo3XJSON(cvss)
+			}
+		}
+		result = append(result, sj)
+	}
+	return result
 }
 
 type productStatusJSON struct {

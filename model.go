@@ -20,12 +20,23 @@ import (
 
 //go:generate go run cmd/genenums/genenums.go -definitions enums.json -destination enums.go
 
+// targetFormat is used during validation to avoid validation checks that do not
+// apply to the specific format.
+type targetFormat int
+
+const (
+	targetCVRF targetFormat = iota
+	targetCSAF
+)
+
 // validator captures the list of errors and warnings found with the model.
 type validator struct {
 	Errors []string
 
 	prodMap  map[*Product]bool
 	groupMap map[*Group]bool
+
+	target targetFormat
 }
 
 func (v *validator) checkProduct(p *Product, from string) {
@@ -112,7 +123,7 @@ func (r Report) ToCVRF(w io.Writer) error {
 
 	// check for errors before output, because we should only output correct
 	// data.
-	val := r.check()
+	val := r.check(targetCVRF)
 	if len(val.Errors) > 0 {
 		return errors.Errorf("errors encountered before writing: %v",
 			strings.Join(val.Errors, ", "))
@@ -136,7 +147,7 @@ func (r Report) ToCSAF(w io.Writer) error {
 
 	// check for errors before output, because we should only output correct
 	// data.
-	val := r.check()
+	val := r.check(targetCSAF)
 	if len(val.Errors) > 0 {
 		return errors.Errorf("errors encountered before writing: %v",
 			strings.Join(val.Errors, ", "))
@@ -153,7 +164,7 @@ func (r Report) ToCSAF(w io.Writer) error {
 }
 
 // Check verifies that the report is valid before writing.
-func (r *Report) check() *validator {
+func (r *Report) check(targ targetFormat) *validator {
 
 	products := r.ProductTree.allProducts()
 	// ensure uniqueness of product IDs
@@ -182,6 +193,7 @@ func (r *Report) check() *validator {
 		Errors:   errs,
 		prodMap:  prodMap,
 		groupMap: groupMap,
+		target:   targ,
 	}
 
 	r.Meta.check(val)
@@ -523,7 +535,7 @@ type Vulnerability struct {
 	CWE             *CWE
 	Statuses        Status
 	Threats         []Threat
-	CVSS            *CVSSScoreSets
+	Scores          []Score
 	Remediations    []Remediation
 	References      []Reference
 	Acknowledgments []Acknowledgment
@@ -546,7 +558,9 @@ func (v *Vulnerability) check(val *validator) {
 		threat.check(val)
 	}
 
-	v.CVSS.check(val)
+	for _, score := range v.Scores {
+		score.check(val)
+	}
 
 	for _, rem := range v.Remediations {
 		rem.check(val)
@@ -639,39 +653,49 @@ func (th *Threat) check(val *validator) {
 	}
 }
 
-// CVSSScoreSets captures V2 & V3 scores.
-type CVSSScoreSets struct {
-	V2 []ScoreSet
-	V3 []ScoreSet
+// Scoring captures V2 & V3 scores.
+type Score struct {
+	Products   []*Product
+	CVSSScores []CVSSScore
 }
 
 // check validates the contents of a score set - note that a nil score set is
 // allowed.
-func (cvss *CVSSScoreSets) check(val *validator) {
-	if cvss == nil {
+func (sc *Score) check(val *validator) {
+	if sc == nil {
 		return
 	}
-	checkScoreSets(cvss.V2, val)
-	checkScoreSets(cvss.V3, val)
+	val.checkProducts(sc.Products, "Scoring")
+	val.nonEmptyLen(len(sc.CVSSScores), "no CVSS score specified")
+
+	for _, cvss := range sc.CVSSScores {
+		cvss.check(val)
+	}
 }
 
-func checkScoreSets(scores []ScoreSet, val *validator) {
+func checkScores(scores []Score, val *validator) {
 	for _, score := range scores {
 		score.check(val)
 	}
 }
 
 // ScoreSet captures the XML representation of the CVSS v3 scoring.
-type ScoreSet struct {
-	BaseScore          string
-	TemporalScore      string
-	EnvironmentalScore string
+type CVSSScore struct {
+	Version            string
+	BaseScore          float64
+	TemporalScore      float64
+	EnvironmentalScore float64
 	Vector             string
-	Products           []*Product
 }
 
-func (ss ScoreSet) check(val *validator) {
-	val.checkProducts(ss.Products, "score set")
+func (cvss *CVSSScore) check(val *validator) {
+	if cvss.Version != "2.0" && cvss.Version != "3.0" && cvss.Version != "3.1" {
+		val.err(fmt.Sprintf("invalid CVSS version %v", cvss.Version))
+	}
+	// CVRF format does not require the CVSS vector.
+	if val.target != targetCVRF && cvss.Vector == "" {
+		val.err(fmt.Sprintf("empty CVSS vector"))
+	}
 }
 
 // Remediation captures a remediation of a vulnerability

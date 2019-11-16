@@ -7,6 +7,7 @@ package vulnrep
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -641,7 +642,7 @@ func toVulnerabilityXMLs(vulns []Vulnerability) []vulnerabilityXML {
 			CWE:             toCWEExp(v.CWE),
 			Statuses:        toStatusXML(v.Statuses),
 			Threats:         toThreatExps(v.Threats),
-			CVSSScoreSets:   toCVSSScoreSetsXML(v.CVSS),
+			CVSSScoreSets:   toCVSSScoreSetsXML(v.Scores),
 			Remediations:    toRemediationExps(v.Remediations),
 			References:      toReferenceExps(v.References),
 			Acknowledgments: toAcknowledgmentExps(v.Acknowledgments)})
@@ -667,7 +668,7 @@ func (vx vulnerabilityXML) asVulnerability(ctx *loadCtx) Vulnerability {
 		CWE:             vx.CWE.asCWE(),
 		Statuses:        asStatus(ctx, vx.Statuses),
 		Threats:         asThreats(ctx, vx.Threats),
-		CVSS:            vx.CVSSScoreSets.asScoreSet(ctx),
+		Scores:          asScoreSet(ctx, vx.CVSSScoreSets),
 		Remediations:    remediations,
 		References:      asReferences(vx.References),
 		Acknowledgments: asAcknowledgments(vx.Acknowledgments)}
@@ -830,103 +831,104 @@ type cvssScoreSetsXML struct {
 	ScoreSetV3 []scoreSetV3Exp `xml:"ScoreSetV3,omitempty"`
 }
 
-func toCVSSScoreSetsXML(ss *CVSSScoreSets) *cvssScoreSetsXML {
-	if ss == nil {
+func toCVSSScoreSetsXML(scores []Score) *cvssScoreSetsXML {
+	if len(scores) == 0 {
 		return nil
 	}
-	v2scores := make([]scoreSetV2Exp, 0, len(ss.V2))
-	for _, sv2 := range ss.V2 {
-		v2scores = append(v2scores, scoreSetV2Exp(toScoreSetV3Exp(sv2)))
-	}
-	result := cvssScoreSetsXML{
-		ScoreSetV2: v2scores,
-		ScoreSetV3: toScoreSetV3Exps(ss.V3)}
-	return &result
-}
 
-func (css *cvssScoreSetsXML) asScoreSet(ctx *loadCtx) *CVSSScoreSets {
-	if css == nil {
-		return nil
+	var v2Scores []scoreSetV2Exp
+	var v3Scores []scoreSetV3Exp
+	for _, score := range scores {
+		for _, cvss := range score.CVSSScores {
+			prods := toProductIDs(score.Products)
+			if cvss.Version == "2.0" {
+				v2Scores = append(v2Scores,
+					scoreSetV2Exp{
+						BaseScore:          cvss.BaseScore,
+						TemporalScore:      floatOrNil(cvss.TemporalScore),
+						EnvironmentalScore: floatOrNil(cvss.EnvironmentalScore),
+						Vector:             cvss.Vector,
+						ProductIDs:         prods,
+					})
+			} else if cvss.Version == "3.0" || cvss.Version == "3.1" {
+				v3Scores = append(v3Scores,
+					scoreSetV3Exp{
+						BaseScore:          cvss.BaseScore,
+						Vector:             cvss.Vector,
+						EnvironmentalScore: floatOrNil(cvss.EnvironmentalScore),
+						TemporalScore:      floatOrNil(cvss.TemporalScore),
+						ProductIDs:         prods})
+			}
+		}
 	}
-	return &CVSSScoreSets{
-		V2: asScoreSetsV2(ctx, css.ScoreSetV2),
-		V3: asScoreSets(ctx, css.ScoreSetV3)}
+
+	return &cvssScoreSetsXML{
+		ScoreSetV2: v2Scores,
+		ScoreSetV3: v3Scores}
 }
 
 // scoreSetV2XML captures the XML representation of the CVSS v3 scoring.
 type scoreSetV2Exp struct {
-	BaseScore          string      `xml:"BaseScoreV2" json:"base_score_v2"`
-	TemporalScore      string      `xml:"TemporalScoreV2,omitempty" json:"temporal_score_v2,omitempty"`
-	EnvironmentalScore string      `xml:"EnvironmentalScoreV2,omitempty" json:"environmental_score_v2,omitempty"`
+	BaseScore          float64     `xml:"BaseScoreV2"`
+	TemporalScore      *float64    `xml:"TemporalScoreV2,omitempty"`
+	EnvironmentalScore *float64    `xml:"EnvironmentalScoreV2,omitempty"`
 	Vector             string      `xml:"VectorV2,omitempty" json:"vector_v2,omitempty"`
 	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
 }
 
 // scoreSetV3XML captures the XML representation of the CVSS v3 scoring.
 type scoreSetV3Exp struct {
-	BaseScore          string      `xml:"BaseScoreV3" json:"base_score_v3"`
-	TemporalScore      string      `xml:"TemporalScoreV3,omitempty" json:"temporal_score_v3,omitempty"`
-	EnvironmentalScore string      `xml:"EnvironmentalScoreV3,omitempty" json:"environmental_score_v3,omitempty"`
+	BaseScore          float64     `xml:"BaseScoreV3"`
+	TemporalScore      *float64    `xml:"TemporalScoreV3,omitempty"`
+	EnvironmentalScore *float64    `xml:"EnvironmentalScoreV3,omitempty"`
 	Vector             string      `xml:"VectorV3,omitempty" json:"vector_v3,omitempty"`
 	ProductIDs         []ProductID `xml:"ProductID,omitempty" json:"product_ids,omitempty"`
 }
 
-func toScoreSetV3Exp(ss ScoreSet) scoreSetV3Exp {
-	return scoreSetV3Exp{
-		BaseScore:          ss.BaseScore,
-		TemporalScore:      ss.TemporalScore,
-		EnvironmentalScore: ss.EnvironmentalScore,
-		Vector:             ss.Vector,
-		ProductIDs:         toProductIDs(ss.Products)}
+func floatOrNil(f float64) *float64 {
+	if f == 0.0 {
+		return nil
+	}
+	res := f
+	return &res
 }
 
-func toScoreSetV3Exps(ss []ScoreSet) []scoreSetV3Exp {
-	result := make([]scoreSetV3Exp, 0, len(ss))
-	for _, sv3 := range ss {
-		result = append(result, toScoreSetV3Exp(sv3))
+func unwrapFloat(f *float64) float64 {
+	if f == nil {
+		return 0.0
+	}
+	return *f
+}
+
+func asScoreSet(ctx *loadCtx, scores *cvssScoreSetsXML) []Score {
+	var result []Score // nolint: prealloc
+	for _, v2 := range scores.ScoreSetV2 {
+		result = append(result, Score{
+			Products: ctx.asProducts(v2.ProductIDs, "vulnerability/scores"),
+			CVSSScores: []CVSSScore{
+				{
+					Version:            "2.0",
+					BaseScore:          v2.BaseScore,
+					Vector:             v2.Vector,
+					EnvironmentalScore: unwrapFloat(v2.EnvironmentalScore),
+					TemporalScore:      unwrapFloat(v2.TemporalScore),
+				},
+			}})
+	}
+	for _, v3 := range scores.ScoreSetV3 {
+		result = append(result, Score{
+			Products: ctx.asProducts(v3.ProductIDs, "vulnerability/scores"),
+			CVSSScores: []CVSSScore{
+				{
+					Version:            "3.0",
+					BaseScore:          v3.BaseScore,
+					Vector:             v3.Vector,
+					EnvironmentalScore: unwrapFloat(v3.EnvironmentalScore),
+					TemporalScore:      unwrapFloat(v3.TemporalScore),
+				},
+			}})
 	}
 	return result
-}
-
-func toScoreSetV2Exps(ss []ScoreSet) []scoreSetV2Exp {
-	result := make([]scoreSetV2Exp, 0, len(ss))
-	for _, score := range ss {
-		result = append(result, scoreSetV2Exp{
-			BaseScore:          score.BaseScore,
-			TemporalScore:      score.TemporalScore,
-			EnvironmentalScore: score.EnvironmentalScore,
-			Vector:             score.Vector,
-			ProductIDs:         toProductIDs(score.Products)})
-	}
-	return result
-}
-
-func asScoreSetsV2(ctx *loadCtx, v2scores []scoreSetV2Exp) []ScoreSet {
-	scores := make([]ScoreSet, 0, len(v2scores))
-	for _, v2 := range v2scores {
-		scores = append(scores, ScoreSet{
-			BaseScore:          v2.BaseScore,
-			TemporalScore:      v2.TemporalScore,
-			EnvironmentalScore: v2.EnvironmentalScore,
-			Vector:             v2.Vector,
-			Products:           ctx.asProducts(v2.ProductIDs, "cvss score")})
-	}
-
-	return scores
-}
-
-func asScoreSets(ctx *loadCtx, scores []scoreSetV3Exp) []ScoreSet {
-	v3s := make([]ScoreSet, 0, len(scores))
-	for _, v3 := range scores {
-		v3s = append(v3s, ScoreSet{
-			BaseScore:          v3.BaseScore,
-			TemporalScore:      v3.TemporalScore,
-			EnvironmentalScore: v3.EnvironmentalScore,
-			Vector:             v3.Vector,
-			Products:           ctx.asProducts(v3.ProductIDs, "cvss score")})
-	}
-
-	return v3s
 }
 
 // remediationExp captures the XML representation for remediations of a vulnerability
@@ -1065,6 +1067,14 @@ func (lc *loadCtx) asGroups(list []GroupID, loc string) []*Group {
 	return result
 }
 
+func (lc *loadCtx) numberAsFloat(val json.Number) float64 {
+	result, err := val.Float64()
+	if err != nil {
+		lc.issue("unrecognized JSON number value")
+	}
+	return result
+}
+
 // ParseXML parses CVRF file. Both CVRF versions 1.1 and 1.2 are supported.
 //
 // If the parsing process contains only compliance errors, this returns an
@@ -1100,14 +1110,15 @@ func ParseXML(r io.Reader) (Report, error) {
 		return emptyReport, errors.Wrap(err, "problem unmarshalling XML")
 	}
 
-	return checkCompliance(doc.asReport())
-}
-
-func checkCompliance(rep Report, err error) (Report, error) {
+	rep, err := doc.asReport()
 	if err != nil {
 		return rep, err
 	}
-	val := rep.check()
+	return checkCompliance(rep, targetCVRF)
+}
+
+func checkCompliance(rep Report, targ targetFormat) (Report, error) {
+	val := rep.check(targ)
 	if len(val.Errors) > 0 {
 		return rep, &ConformanceErr{Issues: val.Errors}
 	}

@@ -41,14 +41,12 @@
                 "title": "Note title 1",
                 "audience": "Note audience 1",
                 "type": "description",
-                "ordinal": 1,
                 "text": "This is the first document note"
             },
             {
                 "title": "Note title 2",
                 "audience": "Note 2nd audience",
                 "type": "general",
-                "ordinal": 2,
                 "text": "Another note!"
             }
         ],
@@ -162,7 +160,6 @@
     },
     "vulnerabilities": [
         {
-            "ordinal": 1,
             "title": "Foobarred",
             "id": {
                 "system_name": "example_com",
@@ -173,7 +170,6 @@
                     "title": "Vulnerability One",
                     "audience": "Vuln audience",
                     "type": "general",
-                    "ordinal": 1,
                     "text": "Hoping to have fun with the note."
                 }
             ],
@@ -202,52 +198,55 @@
                     "type": "impact",
                     "description": "Everyone is hosed",
                     "date": "2019-07-27T09:15:20-07:00",
-                    "products": [
+                    "product_ids": [
                         "ProductA1",
                         "ProductB1"
                     ],
-                    "groups": [
+                    "group_ids": [
                         "Group1"
                     ]
                 }
             ],
-            "cvss_score_sets": {
-                "v2": [
-                    {
-                        "base_score": "6.6",
-                        "temporal_score": "6.7",
-                        "environmental_score": "6.2",
-                        "vector": "AV:N/AC:L/Au:N/C:C/I:C/A:C/E:F/RL:OF/RC:C/CDP:N/TD:N/CR:ND/IR:ND/AR:ND",
-                        "product_ids": [
-                            "ProductA1"
-                        ]
+            "scores": [
+                {
+                    "product_ids": [
+                        "ProductA1"
+                    ],
+                    "cvss_v20": {
+                        "version": "2.0",
+                        "baseScore": 6.6,
+                        "vectorString": "AV:N/AC:L/Au:N/C:C/I:C/A:C/E:F/RL:OF/RC:C/CDP:N/TD:N/CR:ND/IR:ND/AR:ND",
+                        "temporalScore": 6.7,
+                        "environmentalScore": 6.2
                     }
-                ],
-                "v3": [
-                    {
-                        "base_score": "6.6",
-                        "temporal_score": "6.7",
-                        "environmental_score": "6.2",
-                        "vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
-                        "product_ids": [
-                            "ProductB1"
-                        ]
+                },
+                {
+                    "product_ids": [
+                        "ProductB1"
+                    ],
+                    "cvss_v30": {
+                        "version": "3.0",
+                        "baseScore": 6.6,
+                        "vectorString": "CVSS:3.0/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+                        "baseSeverity": "MEDIUM",
+                        "temporalScore": 6.7,
+                        "environmentalScore": 6.2
                     }
-                ]
-            },
+                }
+            ],
             "remediations": [
                 {
                     "type": "vendor_fix",
                     "date": "2019-07-26T09:15:20-07:00",
                     "description": "You thought we would fix it?!",
-                    "entitlement": [
+                    "entitlements": [
                         "Yup, you are entitled."
                     ],
                     "url": "https://www.example.com/security/patches",
-                    "products": [
+                    "product_ids": [
                         "ProductA1"
                     ],
-                    "groups": [
+                    "group_ids": [
                         "Group1"
                     ]
                 }
