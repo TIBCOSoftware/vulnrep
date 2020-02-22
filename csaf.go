@@ -82,7 +82,7 @@ func toReportJSON(rep Report) reportJSON {
 	}
 }
 
-// ReportMeta captures the metadata about a vulnerability report
+// reportMetaJSON used for serializing the JSON format.
 type reportMetaJSON struct {
 	Title             string                `json:"title"`
 	Type              string                `json:"type"`

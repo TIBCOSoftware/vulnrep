@@ -43,7 +43,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.tibco.com/git/engops/go/vulnrep"
+	"github.com/TIBCOSoftware/vulnrep"
 )
 
 type toConvert struct {

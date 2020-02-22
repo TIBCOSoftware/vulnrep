@@ -21,10 +21,18 @@ This project - the Vulnerability Reporting Library - aims to:
 
 ## Contributing
 
+To run test cases - which perform schema validation against the CSAF proposed schemas,
+appropriate files must first be downloaded - "prepped". This works this way so that the
+schema files themselves are not folded into this project, and not up-to-date with
+the latest working copies. Perform:
+
+`go run cmd/prep/prep.go`
+
 Before submitting a pull request, please raise an issue to discuss the change.
+Contributors may be asked to sign a contributors license agreement.
 Pull requests must pass a minimal filter:
 
-* No issues flagged with golangci-lint --enable-all
+* No issues flagged with golangci-lint run
 * Appropriate test cases - if the pull request fixes a bug, then please provide
   a test case demonstrating the bug
 * Appropriate comments

@@ -8,21 +8,21 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"github.com/TIBCOSoftware/vulnrep/schemamod"
 	"github.com/pkg/errors"
 )
 
 // main wraps a call to run, converting any Go error to a message on os.Stderr,
 // and an exit code.
 func main() {
-
 	err := run(os.Args[0], os.Args[1:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
@@ -48,7 +48,6 @@ func run(appName string, args []string) error {
 }
 
 func parseArgs(appName string, args []string) (*config, error) {
-
 	fs := flag.NewFlagSet(appName, flag.ContinueOnError)
 
 	var cfg config
@@ -95,13 +94,12 @@ func prepFiles(dest string) error {
 	}
 
 	// modify the JSON schema.
-	officialJsonSchema := filepath.Join(dest, "csaf_schema.json")
-	modifiedJsonSchema := filepath.Join(dest, "mod_csaf_schema.json")
-	return addPropertyNamesToJsonSchema(officialJsonSchema, modifiedJsonSchema)
+	officialJSONSchema := filepath.Join(dest, "csaf_schema.json")
+	modifiedJSONSchema := filepath.Join(dest, "mod_csaf_schema.json")
+	return schemamod.AddPropertyNamesToFile(officialJSONSchema, modifiedJSONSchema)
 }
 
-func cacheFile(url string, f string) error {
-
+func cacheFile(url, f string) error {
 	// does the file exist? If it does, do not overwrite it. This lets developers
 	// play with updated versions of the cache files, in case that's useful.
 	_, err := os.Stat(f)
@@ -111,15 +109,15 @@ func cacheFile(url string, f string) error {
 
 	fn := filepath.Base(f)
 	parentDir := filepath.Dir(f)
-	err = os.MkdirAll(parentDir, 0777)
+	err = os.MkdirAll(parentDir, 0750)
 	if err != nil {
 		return errors.Wrapf(err, "unable to open parent dir for caching %v", fn)
 	}
-	req, err := http.Get(url) //nolint: gosec
+	req, err := http.Get(url) //nolint: gosec - we control this URL.
 	if err != nil {
 		return errors.Wrapf(err, "unable to fetch file %v", fn)
 	}
-	defer req.Body.Close()
+	defer safeReadClose(req.Body)
 	raw, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		return fmt.Errorf("unable to read file to save as %v: %v", fn, err)
@@ -127,126 +125,7 @@ func cacheFile(url string, f string) error {
 	return ioutil.WriteFile(f, raw, 0664)
 }
 
-func enforceObjectPropNames(pth string, obj map[string]interface{}) error {
-	// does the object have properties, and not have a propertyNames constraint?
-	if obj["properties"] != nil && obj["propertyNames"] == nil {
-		var propNames []string
-		// cast the properties to a map of prop name + definition.
-		props, ok := obj["properties"].(map[string]interface{})
-		if !ok {
-			return errors.Errorf("unable to cast properties to an object structure for %v", pth)
-		}
-		// loop through all the properties
-		for propName, v := range props {
-
-			// add the name of the property
-			propNames = append(propNames, propName)
-			propPath := pth + "." + propName
-			propAttrs, ok := v.(map[string]interface{})
-			if !ok {
-				return errors.Errorf("unable to get definition of property %v",
-					propPath)
-			}
-			// recurse through the properties.
-			enforcePropNames(propPath, propAttrs)
-		}
-
-		// now, have all property names, add a "propertyNames" attribute to the
-		// object we have...
-		enum := make(map[string]interface{})
-		enum["enum"] = interface{}(propNames)
-		obj["propertyNames"] = interface{}(enum)
-	}
-	return nil
-}
-
-func enforceArrayPropNames(pth string, obj map[string]interface{}) error {
-	items, ok := obj["items"].(map[string]interface{})
-	if !ok {
-		return errors.Errorf("unable to get items of %v", pth)
-	}
-	return enforceObjectPropNames(pth, items)
-}
-
-func enforcePropNames(pth string, obj map[string]interface{}) error {
-
-	t, ok := obj["type"].(string)
-	if ok {
-		if t == "object" {
-			return enforceObjectPropNames(pth, obj)
-		} else if t == "array" {
-			return enforceArrayPropNames(pth+"[]", obj)
-		}
-	}
-	return nil
-}
-
-// addPropertyNamesToJsonSchema walks through a JSON schema, and adds
-// propertyName constraints. The resulting schema enforces that only the
-// specified properties appear in the output instance document.
-//
-// For example:
-//
-// {
-//   "properties": {
-//     "doc": ...
-//   }
-// }
-//
-// ... becomes
-//
-// {
-//   "properties": {
-//     "doc": ...
-//   },
-//   "propertyNames": {
-//     "enum": [ "doc" ]
-//   }
-// }
-func addPropertyNamesToJsonSchema(inFile string, outFile string) error {
-
-	schema, err := readGenericJSONFile(inFile)
-	if err != nil {
-		return err
-	}
-	err = enforceObjectPropNames("", schema)
-	if err != nil {
-		return err
-	}
-	if schema["definitions"] != nil {
-		defs := schema["definitions"].(map[string]interface{})
-		for defName, v := range defs {
-			defProps, ok := v.(map[string]interface{})
-			if !ok {
-				return errors.Errorf("unable to get properties of definition %v", defName)
-			}
-			enforcePropNames("definitions."+defName, defProps)
-		}
-	}
-
-	toWrite, err := json.MarshalIndent(schema, "", "  ")
-	if err != nil {
-		return errors.Wrap(err, "difficulty marshaling modified schema")
-	}
-	fmt.Printf("Writing modified schema to %v\n", outFile)
-	err = ioutil.WriteFile(outFile, toWrite, 0755)
-	if err != nil {
-		return errors.Wrap(err, "problem writing file")
-	}
-	return nil
-}
-
-// readGenericJSONFile reads and parses a JSON file into the generic form
-// of a map[string]interface{}.
-func readGenericJSONFile(inFile string) (map[string]interface{}, error) {
-	raw, err := ioutil.ReadFile(inFile)
-	if err != nil {
-		return nil, err
-	}
-	var result map[string]interface{}
-	err = json.Unmarshal(raw, &result)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to parse json file %v", inFile)
-	}
-	return result, nil
+// safeReadClose just exists to block harmless lint warnings on closing after reading.
+func safeReadClose(c io.Closer) {
+	c.Close() //nolint
 }

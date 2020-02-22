@@ -1,4 +1,4 @@
-module git.tibco.com/git/engops/go/vulnrep
+module github.com/TIBCOSoftware/vulnrep
 
 go 1.12
 

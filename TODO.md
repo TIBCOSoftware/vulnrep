@@ -55,7 +55,6 @@
 
 - [x] validate JSON output against modified JSON schema to ensure that it only
   uses expected properties in JSON
-- [ ] test cases for every enumerated value
 - [ ] Full coverage with test cases
 - [x] verify "omitempty" markup (XML mostly) by creating stripped down XML files
 - [ ] validate that XML output validates against the XML Schema.
@@ -63,9 +62,7 @@
 
 ## Proposed Changes
 
-- [ ] Drop "ordinal" from JSON output (applies to vulnerabilities and notes)?
-- [ ] Add $schema entry?
-- [ ] use JSON schema for CVSS?
-- [ ] Change CVSSScoreSets to just "Scoring" in JSON, with children for v3.0 v3.1,
+- [x] Drop "ordinal" from JSON output (applies to vulnerabilities and notes)?
+- [x] Change CVSSScoreSets to just "Scoring" in JSON, with children for v3.0 v3.1,
   etc.
 - [ ] Why does Relationship include a _list_ of products?

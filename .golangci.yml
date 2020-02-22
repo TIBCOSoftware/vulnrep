@@ -26,14 +26,6 @@ linters-settings:
     # report about shadowed variables
     check-shadowing: true
 
-    # settings per analyzer
-    settings:
-      printf: # analyzer name, run `go tool vet help` to see all analyzers
-        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
   golint:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.8
@@ -98,18 +90,51 @@ linters-settings:
     # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint` run to see all tags and checks.
     # Empty list by default. See https://github.com/go-critic/go-critic#usage -> section "Tags".
     enabled-tags:
+      - diagnostic
       - performance
+      - style
 
     settings: # settings passed to gocritic
       captLocal: # must be valid enabled check name
         paramsOnly: true
       rangeValCopy:
-        sizeThreshold: 32
+        sizeThreshold: 128
 
 linters:
-  enable-all: true
-  disable:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoinits
+    - goconst
     - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - golint
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - misspell
+    - nakedret
+    - scopelint
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
 
 issues:
   # List of regexps of issue texts to exclude, empty list by default.
